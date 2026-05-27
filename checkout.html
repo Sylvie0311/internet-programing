@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>結帳中心 - MedFirst</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container"><a href="index.html" class="logo"><h1>MedFirst <span>結帳中心</span></h1></a></div>
+    </header>
+
+    <main class="container">
+        <div class="checkout-layout">
+            <div class="cart-section">
+                <h3>您的購物車</h3>
+                <div id="checkoutList"></div>
+            </div>
+            <div class="info-section">
+                <div class="summary-card">
+                    <h3>訂單摘要</h3>
+                    <p>商品總計: $<span id="finalTotal">0</span></p>
+                    <p>運費: $0 (免運優惠)</p>
+                    <hr>
+                    <h4>應付總額: $<span id="finalPay">0</span></h4>
+                    <button class="buy-btn" onclick="processOrder()">確認下單</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        window.onload = () => {
+            renderCheckoutPage();
+        };
+    </script>
+</body>
+</html>
