@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedFirst 旺來醫療用品 - 網頁商城模擬</title>
+    <!-- 引入外部樣式表 -->
+    <link rel="stylesheet" href="style.css">
+    <!-- 引入 FontAwesome 圖標庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- 頂部導覽列 -->
+    <header class="navbar">
+        <div class="container navbar-container">
+            <div class="logo" onclick="showMainPage()" style="cursor: pointer;">
+                <h1>MedFirst <span>旺來醫療</span></h1>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="搜尋：血壓計、口罩、尿褲、護具...">
+                <button onclick="handleSearch()"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="nav-tools">
+                <div class="cart-icon" id="cartToggle">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 橫幅廣告區域（內含滾動公告跑馬燈） -->
+    <section class="banner" id="mainBanner">
+        <div class="container banner-container">
+            <div class="banner-text">
+                <h2>您家庭的健康管理師</h2>
+                <p>專業醫療器材 · 連鎖直營 · 安心防護</p>
+            </div>
+            <!-- 滾動廣告跑馬燈 -->
+            <div class="news-ticker">
+                <div class="ticker-content">
+                    <span>🔥 慶祝門市破百家！全館醫療器材限時優惠 85 折起 </span>
+                    <span>🚚 歡慶線上商城上線！全館消費滿 $999 即享免運費 </span>
+                    <span>💊 守護長輩健康！指定款保健食品買三送一，數量有限售完為止 </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主內容區 -->
+    <main class="container page-content">
+        <!-- 1. 商城首頁視圖 -->
+        <div id="mainView">
+            <h2 class="section-title">精選醫療器材與護理用品 (20)</h2>
+            <div class="product-grid" id="productGrid">
+                <!-- 商品卡片會由 JavaScript 自動渲染至此 -->
+            </div>
+        </div>
+
+        <!-- 2. 商品內頁詳情視圖 (預設隱藏) -->
+        <div id="detailView" style="display: none;">
+            <!-- 由 JS 動態生成詳細內容 -->
+        </div>
+
+        <!-- 3. 獨立結帳頁面視圖 (預設隱藏) -->
+        <div id="checkoutView" style="display: none;">
+            <h2 class="section-title">結帳中心</h2>
+            <div class="checkout-layout">
+                <div class="checkout-list-section">
+                    <h3>您的購買清單</h3>
+                    <div id="checkoutItemsList"></div>
+                </div>
+                <div class="checkout-summary-section">
+                    <div class="summary-card">
+                        <h3>訂單摘要</h3>
+                        <div class="summary-line"><span>商品總計:</span><span>$<span id="checkoutTotal">0</span></span></div>
+                        <div class="summary-line"><span>運費:</span><span>$0 (免運優惠)</span></div>
+                        <hr>
+                        <div class="summary-line final-pay"><h4>應付總額:</h4><h4>$<span id="checkoutPay">0</span></h4></div>
+                        <button class="checkout-confirm-btn" onclick="processOrder()">確認送出訂單</button>
+                        <button class="back-to-shop-btn" onclick="showMainPage()">繼續購物</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 側邊購物車滑出視窗 -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>購物清單</h3>
+            <button class="close-btn" id="closeCart">&times;</button>
+        </div>
+        <div class="cart-body" id="cartItems">
+            <!-- 購物車項目由 JS 動態生成 -->
+            <p class="empty-msg">購物車目前是空的</p>
+        </div>
+        <div class="cart-footer">
+            <div class="total-price">總計: $<span id="cartTotal">0</span></div>
+            <button class="checkout-btn" id="goToCheckoutBtn">前往結帳頁面</button>
+        </div>
+    </div>
+
+    <!-- 頁尾 (完全保留原始設定) -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 MedFirst 旺來醫療用品前端切版練習. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- 引入外部 JavaScript 邏輯 -->
+    <script src="script.js"></script>
+</body>
+</html>
