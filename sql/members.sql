@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS members;
 USE members;
 
 DROP TABLE IF EXISTS members;
-# personal資料表
+# members資料表
 CREATE TABLE members(
 	id VARCHAR(25) PRIMARY KEY NOT NULL,
     passwords VARCHAR(30) NOT NULL
