@@ -17,7 +17,7 @@ try {
        
             con.createStatement().execute("USE `board` ");
 
-            // 計算總筆數與處理分頁邏輯
+            // 計算總筆數
             String sqlCount = "SELECT * FROM `guestbook` ";
             ResultSet rsCount = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY).executeQuery(sqlCount);
             rsCount.last();
@@ -34,7 +34,7 @@ try {
             out.println("共 " + total_content + " 筆留言<p>");
             out.println("請選擇頁數：");
             
-            // 顯示分頁連結
+            // 顯示分頁的連結
             out.println("<a href='view.jsp?page=1'>第一頁</a> ");
             if(current_page > 1) 
                 out.println("<a href='view.jsp?page=" + (current_page-1) + "'>上一頁</a> ");
@@ -50,7 +50,7 @@ try {
                 out.println("<a href='view.jsp?page=" + (current_page+1) + "'>下一頁</a> ");
             out.println("<a href='view.jsp?page=" + page_num + "'>最後頁</a><p><hr>");
 
-            // 抓取當前頁面資料
+            // 抓取當前頁面資訊
             int start_record = (current_page - 1) * 5;
             String sqlList = "SELECT * FROM `guestbook` ORDER BY `GBNO` DESC LIMIT " + start_record + ", 5";
             ResultSet rsList = con.createStatement().executeQuery(sqlList);
