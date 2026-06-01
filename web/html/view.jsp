@@ -50,7 +50,7 @@ try {
                 out.println("<a href='view.jsp?page=" + (current_page+1) + "'>下一頁</a> ");
             out.println("<a href='view.jsp?page=" + page_num + "'>最後頁</a><p><hr>");
 
-            // 抓取當前頁面資訊
+            // 抓取當前頁面訊息
             int start_record = (current_page - 1) * 5;
             String sqlList = "SELECT * FROM `guestbook` ORDER BY `GBNO` DESC LIMIT " + start_record + ", 5";
             ResultSet rsList = con.createStatement().executeQuery(sqlList);
