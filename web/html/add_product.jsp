@@ -8,6 +8,12 @@
 <%
 request.setCharacterEncoding("UTF-8");
 
+String role = (String)session.getAttribute("role");
+if(role == null || !role.equals("admin")) {
+    out.println("<h3>您沒有權限存取此頁面！</h3>");
+    return;
+}
+
 String id = request.getParameter("Product_ID");
 String name = request.getParameter("Product_Name");
 String spec = request.getParameter("Specification");
