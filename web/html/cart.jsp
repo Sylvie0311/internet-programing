@@ -10,7 +10,7 @@
     String action = request.getParameter("action");
     String pIdParam = request.getParameter("p_id");
 
-    // 數量加減、刪除
+    // 數量加減、刪除 (加減還沒用上去，等王)
     if (action != null && pIdParam != null) {
         Connection connAction = null;
         Statement stmtAction = null;
@@ -20,11 +20,7 @@
             stmtAction = connAction.createStatement();
 
             String sqlAction = "";
-            if (action.equals("add")) {
-                sqlAction = "UPDATE shopping_cart SET Quantity = Quantity + 1 WHERE Product_ID = '" + pIdParam + "'";
-            } else if (action.equals("minus")) {
-                sqlAction = "UPDATE shopping_cart SET Quantity = Quantity - 1 WHERE Product_ID = '" + pIdParam + "' AND Quantity > 1";
-            } else if (action.equals("delete")) {
+            if (action.equals("delete")) {
                 sqlAction = "DELETE FROM shopping_cart WHERE Product_ID = '" + pIdParam + "'";
             }
      
