@@ -20,7 +20,7 @@ if (oldId != null) {
             if (rows > 0) {
                 // 更新後把session裡的id改成新帳號
                 session.setAttribute("id", newId);
-                out.print("更新成功! 請<a href='../index.html'>按此</a>回首頁");
+                out.print("更新成功! 請<a href='../index.jsp'>按此</a>回首頁");
             } else {
                 out.print("更新失敗，帳號不存在。<a href='user.jsp'>按此</a>回會員頁面");
             }
