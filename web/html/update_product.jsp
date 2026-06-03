@@ -7,6 +7,14 @@
 <body>
 <%
 request.setCharacterEncoding("UTF-8");
+
+String role = (String)session.getAttribute("role");
+if(role == null || !role.equals("admin")) {
+    out.println("<h3>您沒有權限存取此頁面！</h3>");
+    out.println("<a href='login.html'>請先登入管理員帳號</a>");
+    return;
+}
+
 String id = request.getParameter("Product_ID");
 
 // 如果有送出修改表單
