@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -23,9 +23,9 @@
     application.setAttribute("visitor_count", count);
 %>
 
-    <h2>網站資訊</h2>
+    
     <p>您是本站的第 <b><%= count %></b> 位訪客！</p>
 
     <hr>
-    </body>
+</body>
 </html>
