@@ -5,6 +5,15 @@
     <title>商品列表</title>
 </head>
 <body>
+<%
+    String role = (String)session.getAttribute("role");
+    if(role == null || !role.equals("admin")) {
+        out.println("<h3>您沒有權限存取此頁面！</h3>");
+        out.println("<a href='login.html'>請先登入管理員帳號</a>");
+        return;
+    }
+%>
+
 <h2>商品列表</h2>
 <a href="add_product.jsp">新增商品</a><br><br>
 
