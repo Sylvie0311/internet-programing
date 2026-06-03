@@ -1,11 +1,19 @@
 <%@ page import="java.sql.*" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-    <html>
-    <head>
-        <title>刪除商品</title>
-    </head>
-    <body>
-    <%
+<html>
+<head>
+    <title>刪除商品</title>
+</head>
+<body>
+<%
+    // 角色檢查：只有管理員才能操作
+    String role = (String)session.getAttribute("role");
+    if(role == null || !role.equals("admin")) {
+        out.println("<h3>您沒有權限存取此頁面！</h3>");
+        out.println("<a href='login.html'>請先登入管理員帳號</a>");
+        return;
+    }
+
     String id = request.getParameter("Product_ID");
     
     if(id != null && !id.isEmpty()) {
@@ -31,6 +39,6 @@
     } else {
         out.println("未指定要刪除的商品！");
     }
-    %>
-    </body>
-    </html>
+%>
+</body>
+</html>
