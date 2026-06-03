@@ -9,7 +9,7 @@
     String role = (String)session.getAttribute("role");
     if(role == null || !role.equals("admin")) {
         out.println("<h3>您沒有權限存取此頁面！</h3>");
-        out.println("<a href='login.html'>請先登入管理員帳號</a>");
+        out.println("<a href='login.jsp'>請先登入管理員帳號</a>");
         return;
     }
 %>
