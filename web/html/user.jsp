@@ -4,7 +4,123 @@
 <%@include file="config.jsp"%>
 <html>
 <head>
-	<link rel="stylesheet" href="../css/sign.css">
+<style>
+/* 全域 */
+body {
+    font-family:'Noto Serif TC', serif;
+    background-color: #ffe5ec;
+    margin: 0;
+    padding: 0;
+}
+.arrow{
+    width: 30px;
+    height: 30px;
+    margin:20px;
+}
+/* 容器自適應 */
+.container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+/* 卡片樣式 */ 
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* 標題 */
+.title {
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-align: center;
+}
+
+/* 表單樣式 */
+.form {
+    display: grid;
+    gap: 15px; 
+}
+  
+.form-row {
+    display: flex;
+    flex-direction: column;
+}
+  
+label {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+  
+input[type="text"], 
+input[type="password"],
+input[type="email"],
+input[type="tel"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* 表單動作 */ 
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+  
+.s {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+    max-width: 300px;
+}
+  
+.s.primary {
+    background: #4a90e2;
+    color: #fff;
+    border: none;
+    text-decoration: none;
+    width:250px;
+}
+  
+.s.link {
+    background: transparent;
+    color: #4a90e2;
+}
+
+.s.link:hover {
+    text-decoration: underline;
+}
+
+/* 隱藏欄位 */
+.hidden {
+    display: none;
+}
+
+/* ===== 響應式 ===== */
+@media (max-width: 600px) {
+    .container {
+        margin: 20px auto;
+        padding: 10px;
+    }
+    .card {
+        padding: 20px;
+    }
+    .s {
+        width: 100%;
+    }
+    .s.primary{
+        width:70%;
+    }
+}
+</style>
 </head>
 <body>
 <%
