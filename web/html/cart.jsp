@@ -20,11 +20,15 @@
             stmtAction = connAction.createStatement();
 
             String sqlAction = "";
+<<<<<<< HEAD
             if (action.equals("add")) {
                 sqlAction = "UPDATE shopping_cart SET Quantity = Quantity + 1 WHERE Product_ID = '" + pIdParam + "'";
             } else if (action.equals("minus")) {
                 sqlAction = "UPDATE shopping_cart SET Quantity = Quantity - 1 WHERE Product_ID = '" + pIdParam + "' AND Quantity > 1";
             } else if (action.equals("delete")) {
+=======
+            if (action.equals("delete")) {
+>>>>>>> 8fcae84a78a6b5a0fb4b1a78df442e564c3c2a89
                 sqlAction = "DELETE FROM shopping_cart WHERE Product_ID = '" + pIdParam + "'";
             }
      
