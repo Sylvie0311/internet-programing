@@ -2,16 +2,164 @@
 <%@ page import="java.sql.*" %>
 <%
     // 資料庫連線
-    String url = "jdbc:mysql://localhost:3306/medical_system_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+    String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234"; 
 %>
-<!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>醫療器材商場</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<title>醫療器材商場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+	* {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+	body {
+		font-family: 'Noto Sans TC', sans-serif;
+		background-color: #FFFFFF;
+		color: var(--text-color);
+		line-height: 1.6;
+	}
+	header {
+		background-color: #FFFFFF;
+		border-bottom: 1px solid var(--border-color);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px 40px;
+	}
+	header h1 {
+		font-size: 24px;
+		color: var(--primary-color);
+		font-weight: 700;
+	}
+	header a {
+		font-size: 16px;
+		text-decoration: none;
+		color: var(--primary-color);
+		font-weight: 500;
+		padding: 8px 16px;
+		border: 1px solid var(--primary-color);
+		border-radius: 20px;
+		transition: all 0.3s;
+	}
+	header a:hover {
+		background-color: var(--primary-color);
+		color: #FFFFFF;
+	}
+	main {
+		max-width: 1200px;
+		margin: 40px auto;
+		padding: 0 20px;
+	}
+	#product-container {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 24px;
+	}
+	#product-container > div {
+		border: 1px solid var(--border-color);
+		border-radius: 12px;
+		padding: 20px;
+		background-color: #FFFFFF;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		transition: transform 0.3s, box-shadow 0.3s;
+		height: 480px;
+	}
+	#product-container > div:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+		border-color: var(--primary-color);
+	}
+	#product-container img {
+		width: 100%;
+		height: 160px;
+		object-fit: contain;
+		background-color: #F9F9F9;
+		border-radius: 8px;
+		margin-bottom: 15px;
+	}
+	#product-container h3 {
+		font-size: 16px;
+		font-weight: 500;
+		color: var(--text-color);
+		margin-bottom: 8px;
+		height: 48px;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	#product-container p {
+		font-size: 14px;
+		color: #666666;
+		margin-bottom: 4px;
+	}
+	#product-container p strong {
+		color: var(--primary-color);
+	}
+	.price-text {
+		color: var(--price-color) !important;
+		font-weight: 700;
+		font-size: 16px !important;
+		margin-top: 5px;
+	}
+	.action-group {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		margin-top: 15px;
+	}
+	.btn-view {
+		display: block;
+		text-align: center;
+		background-color: var(--morandi-gray-btn);
+		color: var(--primary-color);
+		padding: 8px 0;
+		border-radius: 6px;
+		font-size: 13px;
+		font-weight: 500;
+		text-decoration: none;
+		border: 1px solid #E0EFFE;
+		transition: all 0.25s;
+	}
+	.btn-view:hover {
+		background-color: var(--secondary-bg);
+		border-color: var(--primary-color);
+	}
+	.btn-cart {
+		display: block;
+		text-align: center;
+		background-color: var(--primary-color);
+		color: #FFFFFF;
+		padding: 8px 0;
+		border-radius: 6px;
+		font-size: 13px;
+		font-weight: 500;
+		text-decoration: none;
+		transition: all 0.25s;
+	}
+	.btn-cart:hover {
+		background-color: var(--primary-hover);
+	}
+	@media (max-width: 1024px) {
+		#product-container { grid-template-columns: repeat(3, 1fr); }
+	}
+	@media (max-width: 768px) {
+		#product-container { grid-template-columns: repeat(2, 1fr); }
+	}
+	@media (max-width: 480px) {
+		#product-container { grid-template-columns: repeat(1, 1fr); }
+	}
+</style>
 </head>
 <body>
 
@@ -28,7 +176,7 @@
     Statement stmt = null;
     ResultSet rs = null;
 
-    //庫存變數
+    // 庫存變數
     int s1=0, s2=0, s3=0, s4=0, s5=0, s6=0, s7=0, s8=0, s9=0, s10=0;
 
     try {
@@ -61,7 +209,6 @@
         out.print("資料庫連線或查詢失敗：" + sExec.toString());
     } 
     finally {
-        // Step 6: 關閉
         if (rs != null) { rs.close(); }
         if (stmt != null) { stmt.close(); }
         if (conn != null) { conn.close(); }
@@ -69,97 +216,126 @@
 %>
 
         <div>
-            <img src="img2.0/無菌針頭.jpg" alt="無菌針頭">
+            <img src="../images/無菌針頭.jpg" alt="無菌針頭">
             <h3>無菌針頭</h3>
             <p>規格：21G</p>
-            <p>價格：15 元</p>
+            <p class="price-text">價格：15 元</p>
             <p>目前庫存：<strong><%= s1 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P001">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P001" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P001" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/電子血壓計.jpg" alt="電子血壓計">
+            <img src="../images/電子血壓計.jpg" alt="電子血壓計">
             <h3>電子血壓計</h3>
             <p>規格：HEM-7121</p>
-            <p>價格：1980 元</p>
+            <p class="price-text">價格：1980 元</p>
             <p>目前庫存：<strong><%= s2 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P002">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P002" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P002" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/活性碳口罩.jpg" alt="醫用活性碳口罩">
+            <img src="../images/活性碳口罩.jpg" alt="醫用活性碳口罩">
             <h3>醫用活性碳口罩</h3>
             <p>規格：50入/盒</p>
-            <p>價格：150 元</p>
+            <p class="price-text">價格：150 元</p>
             <p>目前庫存：<strong><%= s3 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P003">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P003" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P003" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/N95口罩.png" alt="醫用N95口罩">
+            <img src="../images/N95口罩.jpg" alt="醫用N95口罩">
             <h3>醫用N95口罩</h3>
             <p>規格：20入/盒</p>
-            <p>價格：89 元</p>
+            <p class="price-text">價格：89 元</p>
             <p>目前庫存：<strong><%= s4 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P004">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P004" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P004" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/護腰.jpg" alt="專業醫療護具護腰">
+            <img src="../images/護腰.jpg" alt="專業醫療護具護腰">
             <h3>專業醫療護具護腰</h3>
             <p>規格：1入/包</p>
-            <p>價格：2700 元</p>
+            <p class="price-text">價格：2700 元</p>
             <p>現有庫存：<strong><%= s5 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P005">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P005" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P005" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/ok蹦.jpg" alt="防水透氣ok蹦">
+            <img src="../images/ok蹦.jpg" alt="防水透氣ok蹦">
             <h3>防水透氣ok蹦</h3>
             <p>規格：15入/盒</p>
-            <p>價格：72 元</p>
+            <p class="price-text">價格：72 元</p>
             <p>目前庫存：<strong><%= s6 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P006">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P006" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P006" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/人工皮.jpg" alt="人工皮">
+            <img src="../images/人工皮.jpg" alt="人工皮">
             <h3>親水性敷料人工皮</h3>
             <p>規格：2入/包</p>
-            <p>價格：209 元</p>
+            <p class="price-text">價格：209 元</p>
             <p>目前庫存：<strong><%= s7 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P007">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P007" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P007" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/手杖.jpg" alt="自立式手杖(右手用)">
+            <img src="../images/手杖.jpg" alt="自立式手杖(右手用)">
             <h3>自立式手杖(右手用)</h3>
             <p>規格：單支</p>
-            <p>價格：1900 元</p>
+            <p class="price-text">價格：1900 元</p>
             <p>目前庫存：<strong><%= s8 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P008">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P008" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P008" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/馬桶椅.png" alt="固定式12吋後輪+頭靠 馬桶椅">
+            <img src="../images/馬桶椅.png" alt="固定式12吋後輪+頭靠 馬桶椅">
             <h3>固定式12吋後輪+頭靠 馬桶椅</h3>
             <p>規格：單個</p>
-            <p>價格：4500 元</p>
+            <p class="price-text">價格：4500 元</p>
             <p>目前庫存：<strong><%= s9 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P009">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P009" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P009" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
         <div>
-            <img src="img2.0/舒適乒乓約束帶.jpg" alt="舒適乒乓約束帶(無拉鍊款)">
+            <img src="../images/舒適乒乓約束帶.jpg" alt="舒適乒乓約束帶(無拉鍊款)">
             <h3>舒適乒乓約束帶(無拉鍊款)</h3>
             <p>規格：1入/包</p>
-            <p>價格：225 元</p>
+            <p class="price-text">價格：225 元</p>
             <p>目前庫存：<strong><%= s10 %></strong> 件</p>
-            <a href="add_to_cart.jsp?buy_id=P010">加入購物車</a>
+            <div class="action-group">
+                <a href="product_main.jsp?id=P010" class="btn-view">🔍 檢視商品</a>
+                <a href="add_to_cart.jsp?buy_id=P010" class="btn-cart">加入購物車</a>
+            </div>
         </div>
 
     </section>
 </main>
 </body>
-</html>
 </html>
