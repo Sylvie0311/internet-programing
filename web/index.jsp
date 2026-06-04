@@ -126,7 +126,6 @@ nav {
 .tag-customer .status-dot { background-color: #00A49E; }
 .tag-admin .status-dot { background-color: #D9534F; }
 
-/* 搜尋框 */
 .search-wrapper {
     display: flex;
     align-items: center;
@@ -500,7 +499,7 @@ footer {
             <h2 class="hot">🔥熱銷商品🔥</h2>
 
             <section class="products" id="product-container">
-			/*搜尋框*/
+			
 			<%
 				request.setCharacterEncoding("UTF-8");
 				String keyword = request.getParameter("keyword");
