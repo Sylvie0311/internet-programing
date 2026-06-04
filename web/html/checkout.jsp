@@ -36,11 +36,18 @@
         String clearCartSql = "DELETE FROM shopping_cart";
         stmtClearCart.executeUpdate(clearCartSql);
 
+		// 獲取登入者的角色身分
+        String role = (String) session.getAttribute("role");
+		
         out.println("<script type='text/javascript'>");
         out.println("alert('結帳成功！再回來逛逛吧！');");
-        out.println("window.location.href='product_list.jsp';");
-        out.println("</script>");
-
+		
+		if ("customer".equals(role)) {
+			out.println("window.location.href='../index.jsp';");
+		}else{
+			out.println("window.location.href='product_list.jsp';");
+		}
+		out.println("</script>");
     } 
     catch (SQLException sExec) {
         out.println("<script type='text/javascript'>");
