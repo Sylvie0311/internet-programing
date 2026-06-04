@@ -5,10 +5,12 @@
 <html>
 <body>
 <%
+Connection con = (Connection)request.getAttribute("con"); 
+
 if (request.getParameter("id")!=null && !request.getParameter("id").equals("")
     && request.getParameter("passwords") !=null && !request.getParameter("passwords").equals("")){
 
-    sql = "SELECT * FROM members WHERE id=? AND passwords=?";
+    String sql = "SELECT * FROM members WHERE id=? AND passwords=?";
     PreparedStatement pstmt = con.prepareStatement(sql);
     pstmt.setString(1, request.getParameter("id"));
     pstmt.setString(2, request.getParameter("passwords"));
@@ -17,7 +19,7 @@ if (request.getParameter("id")!=null && !request.getParameter("id").equals("")
 
     if (rs.next()){
         session.setAttribute("id", rs.getString("id"));
-        session.setAttribute("role", rs.getString("role")); // 新增角色判斷
+        session.setAttribute("role", rs.getString("role")); 
 
         con.close();
         response.sendRedirect("user.jsp");

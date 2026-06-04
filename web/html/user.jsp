@@ -124,53 +124,66 @@ input[type="tel"] {
 </head>
 <body>
 <%
+Connection con = (Connection)request.getAttribute("con");
+
 if (session.getAttribute("id")!=null){
-	sql="SELECT * FROM `members` WHERE `id` ='"+session.getAttribute("id")+"';";
-	ResultSet rs=con.createStatement().executeQuery(sql);
-	String id="",passwords="";
-	while (rs.next()){
-		id=rs.getString("id");
-		passwords=rs.getString("passwords");
-	}
-	con.close();
+    String sql = "SELECT * FROM members WHERE id=?";
+    PreparedStatement pstmt = con.prepareStatement(sql);
+    pstmt.setString(1, (String)session.getAttribute("id"));
+    ResultSet rs = pstmt.executeQuery();
+
+    String id="", passwords="";
+    while (rs.next()){
+        id = rs.getString("id");
+        passwords = rs.getString("passwords");
+    }
+    con.close();
+
+    String role = (String)session.getAttribute("role");
 %>
- <main class="container">
-	<section class="card">
-		<h2><%=id%>您好~<br></h2>
-		請修改您的會員資料<br>
-		<form action="update.jsp" method="post" class="form">
-		<div class="form-row">
-			您的帳號:<input type="text" name="id" value="<%=id%>">
-		</div>
-		<div class="form-row">
-			您的密碼:<input type="text" name="passwords" value="<%=passwords%>">
-		</div>
-		<div class="form-actions">
-			<input type="submit" name="b1" value="更新" class="s primary">
-		</div>
-		</form>
-	</section>
+    <main class="container">
+    <section class="card">
+        <h2><%=id%> 您好~<br></h2>
+            
+        <% if("admin".equals(role)) { %>
+            <p style="color: red; font-weight: bold;">您是管理員，請進入商家後台管理：</p>
+            <a href="product_list.jsp" class="s primary">商家後台管理</a><br><br>
+        <% } else { %>
+            <p style="color: green; font-weight: bold;">您是一般會員，以下是會員中心功能：</p>
+        <% } %>
+    
+        <form action="update.jsp" method="post" class="form">
+            <div class="form-row">
+                您的帳號:<input type="text" name="id" value="<%=id%>">
+            </div>
+            <div class="form-row">
+                您的密碼:<input type="text" name="passwords" value="<%=passwords%>">
+            </div>
+            <div class="form-actions">
+                <input type="submit" name="b1" value="更新" class="s primary">
+            </div>
+        </form>
+    </section>
 </main>
 <%
-}
-else{
-	con.close();
+} else {
+    con.close();
 %>
 <main class="container">
-	<section class="card">
-		<h1><font color="red">您尚未登入!!</font></h1>
-		<form action="check.jsp" method="post" class="form">
-		<div class="form-row">
-			帳號:<input type="text" name="id"><br>
-		</div>
-		<div class="form-row">
-			密碼:<input type="password" name="passwords"><br>
-		</div>
-		<div class="form-actions">
-			<input type="submit" name="b1" value="登入" class="s primary">
-		</div>
-		</form>
-	</section>
+    <section class="card">
+        <h1><font color="red">您尚未登入!!</font></h1>
+        <form action="check.jsp" method="post" class="form">
+            <div class="form-row">
+                帳號:<input type="text" name="id"><br>
+            </div>
+            <div class="form-row">
+                密碼:<input type="password" name="passwords"><br>
+            </div>
+            <div class="form-actions">
+                <input type="submit" name="b1" value="登入" class="s primary">
+            </div>
+        </form>
+    </section>
 </main>
 <%
 }
