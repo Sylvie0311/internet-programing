@@ -151,6 +151,10 @@ if (session.getAttribute("id")!=null){
         <% } else { %>
             <p style="color: green; font-weight: bold;">您是一般會員，以下是會員中心功能：</p>
         <% } %>
+
+        <div class="form-actions">
+            <a href="../index.jsp" class="s link">回首頁</a>
+        </div>
     
         <form action="update.jsp" method="post" class="form">
             <div class="form-row">
