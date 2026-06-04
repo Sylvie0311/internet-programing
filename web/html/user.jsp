@@ -5,44 +5,93 @@
 <html>
 <head>
 <style>
-/* 全域 */
+:root {
+    --primary-color: #4a90e2;
+    --primary-hover: #357abd;
+    --admin-color: #d9534f;
+    --user-color: #2b8a3e;
+    --light-bg: #ffe5ec;
+    --card-bg: #ffffff;
+    --text-main: #333333;
+    --text-muted: #666666;
+    --border-color: #ccced0;
+}
+
 body {
-    font-family:'Noto Serif TC', serif;
-    background-color: #ffe5ec;
+    font-family: 'Noto Serif TC', 'Noto Sans TC', serif, sans-serif;
+    background-color: var(--primary-color)
     margin: 0;
     padding: 0;
+    color: var(--text-main);
 }
-.arrow{
+
+.arrow {
     width: 30px;
     height: 30px;
-    margin:20px;
+    margin: 20px;
 }
-/* 容器自適應 */
+
 .container {
-    max-width: 500px;
-    margin: 50px auto;
-    padding: 20px;
+    max-width: 480px;
+    margin: 60px auto;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
-/* 卡片樣式 */ 
+
 .card {
-    background: #fff;
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 35px 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
 }
 
-/* 標題 */
+
 .title {
+    margin-top: 0;
     margin-bottom: 20px;
     font-size: 24px;
     text-align: center;
+    font-weight: 700;
 }
 
-/* 表單樣式 */
+.welcome-msg {
+    font-size: 22px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    color: var(--text-main);
+}
+
+.status-box {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+}
+.status-admin {
+    background-color: #fdf2f2;
+    color: var(--admin-color);
+    border: 1px solid #f8d7da;
+}
+.status-user {
+    background-color: #f4faf5;
+    color: var(--user-color);
+    border: 1px solid #d4edda;
+}
+.status-warning {
+    background-color: #fff5f5;
+    color: var(--admin-color);
+    border: 1px solid #fde8e8;
+}
+
 .form {
     display: grid;
-    gap: 15px; 
+    gap: 18px; 
+    text-align: left;
 }
   
 .form-row {
@@ -51,73 +100,103 @@ body {
 }
   
 label {
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
 }
   
 input[type="text"], 
 input[type="password"],
 input[type="email"],
 input[type="tel"] {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    background-color: #fdfdfd;
+    box-sizing: border-box;
+    width: 100%;
 }
 
-/* 表單動作 */ 
+input[type="text"]:focus, 
+input[type="password"]:focus {
+    border-color: var(--primary-color);
+}
+
 .form-actions {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
     margin-top: 10px;
+    width: 100%;
 }
   
 .s {
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 12px 20px;
+    border-radius: 8px;
     text-align: center;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    box-sizing: border-box;
     width: 100%;
-    max-width: 300px;
+    transition: all 0.2s;
+    display: inline-block;
 }
   
 .s.primary {
-    background: #4a90e2;
+    background: var(--primary-color);
     color: #fff;
     border: none;
     text-decoration: none;
-    width:250px;
+    letter-spacing: 2px;
+}
+
+.s.primary:hover {
+    background: var(--primary-hover);
+}
+
+.s.admin-btn {
+    background: var(--admin-color);
+    color: #fff;
+    border: none;
+    text-decoration: none;
+    letter-spacing: 1px;
+}
+.s.admin-btn:hover {
+    background: #c9302c;
 }
   
 .s.link {
     background: transparent;
-    color: #4a90e2;
+    color: var(--primary-color);
+    border: none;
+    text-decoration: none;
+    font-size: 14px;
 }
 
 .s.link:hover {
     text-decoration: underline;
+    color: var(--primary-hover);
 }
 
-/* 隱藏欄位 */
+
 .hidden {
     display: none;
 }
 
-/* ===== 響應式 ===== */
-@media (max-width: 600px) {
+/* 響應式 */
+@media (max-width: 480px) {
     .container {
-        margin: 20px auto;
-        padding: 10px;
+        margin: 30px auto;
+        padding: 0 15px;
     }
     .card {
-        padding: 20px;
-    }
-    .s {
-        width: 100%;
-    }
-    .s.primary{
-        width:70%;
+        padding: 25px 20px;
     }
 }
 </style>
@@ -146,10 +225,16 @@ if (session.getAttribute("id")!=null){
         <h2><%=id%> 您好~<br></h2>
             
         <% if("admin".equals(role)) { %>
-            <p style="color: red; font-weight: bold;">您是管理員，請進入商家後台管理：</p>
-            <a href="product_list.jsp" class="s primary">商家後台管理</a><br><br>
+			<div class="status-box status-admin">
+				<p style="color: red; font-weight: bold;">您是管理員，請進入商家後台管理：</p>
+			</div>
+            <div class="form-actions" style="margin-bottom: 20px;">
+                <a href="product_list.jsp" class="s admin-btn">進入商家後台管理</a>
+            </div>
         <% } else { %>
-            <p style="color: green; font-weight: bold;">您是一般會員，以下是會員中心功能：</p>
+            <div class="status-box status-user">
+                <strong>您是一般會員</strong><br>歡迎來到您的個人會員中心功能
+            </div>
         <% } %>
 
         <div class="form-actions">
@@ -161,7 +246,7 @@ if (session.getAttribute("id")!=null){
                 您的帳號:<input type="text" name="id" value="<%=id%>">
             </div>
             <div class="form-row">
-                您的密碼:<input type="text" name="passwords" value="<%=passwords%>">
+                您的密碼:<input type="password" name="passwords" value="<%=passwords%>">
             </div>
             <div class="form-actions">
                 <input type="submit" name="b1" value="更新" class="s primary">
