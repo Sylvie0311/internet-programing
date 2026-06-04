@@ -483,7 +483,7 @@ footer {
                 <img src="images/shopping cart.png" alt="購物車圖示" class="up">
             </a>
             <a href="html/member.jsp" title="會員中心">
-                <img src="images/head.png" alt="會員頭像" class="up">
+                <img src="images/user.png" alt="會員頭像" class="up">
             </a>
             <a href="html/about.jsp" title="關於我們">
                 <img src="images/Menu-burger.png" alt="關於我們圖示" class="up">
