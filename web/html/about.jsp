@@ -15,7 +15,7 @@
 	
 	body {
 		font-family:'Noto Serif TC', serif;
-		background-color: #ffe5ec;
+		background-color: #00A49E;
 		margin: 0;
 		padding: 20px;
 	}
