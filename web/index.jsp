@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page import="java.util.*,java.sql.*" %>
-<!DOCTYPE html>
+<html>
 <html>
 
 <head>
@@ -76,6 +76,12 @@ nav {
     gap: 20px;
 }
 
+.login-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .up-left, .up {
     width: 24px;
     height: 24px;
@@ -89,7 +95,38 @@ nav {
     opacity: 0.9;
 }
 
-/* 搜尋框優化 */
+.login-status-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.tag-customer {
+    background-color: #E6F4F3;
+    color: #008782;
+    border: 1px solid #BCE3E1;
+}
+.tag-admin {
+    background-color: #FDF2F2;
+    color: #D9534F;
+    border: 1px solid #F8D7DA;
+}
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.tag-customer .status-dot { background-color: #00A49E; }
+.tag-admin .status-dot { background-color: #D9534F; }
+
+/* 搜尋框 */
 .search-wrapper {
     display: flex;
     align-items: center;
@@ -411,12 +448,35 @@ footer {
 
     <nav> 
         <div class="nav-left">
-            <a href="html/login.jsp" title="登入會員">
-                <img src="images/sign-in.png" class="up-left" alt="Sign In">
-            </a>
-            <div class="search-wrapper">
-                <input type="text" placeholder="搜尋商品..." class="search-bar" id="search-input">
+            <div class="login-block">
+                <a href="html/login.jsp" title="會員中心/登入">
+                    <img src="images/sign-in.png" class="up-left" alt="Sign In">
+                </a>
+                <%
+                    // 獲取當前 Session中的使用者身分與 ID
+                    String loginId = (String) session.getAttribute("id");
+                    String loginRole = (String) session.getAttribute("role");
+
+                    if (loginId != null && loginRole != null) {
+                        if ("customer".equals(loginRole)) {
+                %>
+                            <div class="login-status-tag tag-customer">
+                                <span class="status-dot"></span>一般會員登入中
+                            </div>
+                <%
+                        } else if ("admin".equals(loginRole)) {
+                %>
+                            <div class="login-status-tag tag-admin">
+                                <span class="status-dot"></span>管理員登入中
+                            </div>
+                <%
+                        }
+                    }
+                %>
             </div>
+            <form action="index.jsp" method="get" class="search-wrapper">
+				<input type="text" name="keyword" value="<%= request.getParameter("keyword") != null ? request.getParameter("keyword") : "" %>" placeholder="搜尋商品..." class="search-bar" id="search-input">
+			</form>
         </div>
       
         <div class="nav-right">
@@ -440,9 +500,13 @@ footer {
             <h2 class="hot">🔥熱銷商品🔥</h2>
 
             <section class="products" id="product-container">
-            <%
+			/*搜尋框*/
+			<%
+				request.setCharacterEncoding("UTF-8");
+				String keyword = request.getParameter("keyword");
+			
                 Connection conn = null;
-                Statement stmt = null;
+                PreparedStatement pstmt = null;
                 ResultSet rs = null;
                 try {
                     Class.forName("com.mysql.cj.jdbc.Driver");
@@ -452,59 +516,81 @@ footer {
                     String password = "1234";
                     conn = DriverManager.getConnection(url, user, password);
                     
-                    String sql = "SELECT p.Product_ID, p.Product_Name, p.Unit_Price, p.Specification, IFNULL(i.Quantity, 0) AS Stock_Quantity " +
-                                 "FROM Product p " +
-                                 "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID";
-                                 
-                    stmt = conn.createStatement();
-                    rs = stmt.executeQuery(sql);
+                    String sql = "";
+        
+					if (keyword != null && !keyword.trim().isEmpty()) {
+						sql = "SELECT p.Product_ID, p.Product_Name, p.Unit_Price, p.Specification, IFNULL(i.Quantity, 0) AS Stock_Quantity " +
+							  "FROM Product p " +
+							  "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID " +
+							  "WHERE p.Product_Name LIKE ?";
+						pstmt = conn.prepareStatement(sql);
+						pstmt.setString(1, "%" + keyword.trim() + "%");
+					} else {
+						sql = "SELECT p.Product_ID, p.Product_Name, p.Unit_Price, p.Specification, IFNULL(i.Quantity, 0) AS Stock_Quantity " +
+							  "FROM Product p " +
+							  "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID";
+						pstmt = conn.prepareStatement(sql);
+					}
+					 
+					rs = pstmt.executeQuery();
+					boolean hasResult = false;
 
-                    while (rs.next()) {
-                        String productId = rs.getString("Product_ID");
-                        String productName = rs.getString("Product_Name");
-                        int unitPrice = rs.getInt("Unit_Price");
-                        String spec = rs.getString("Specification");
-                        int stock = rs.getInt("Stock_Quantity"); 
-                        
-                        String imgPath = "images/" + productId + ".jpg"; 
-            %>
-                <div class="product">
-                    <div>
-                        <img src="<%= imgPath %>" onerror="this.onerror=null; this.src='images/default.jpg';" alt="<%= productName %>">
-                        <h3><%= productName %></h3>
-                        
-                        <p style="font-size: 13px; color: #666666; font-weight: normal; margin-bottom: 4px;">
-                            規格：<%= spec %>
-                        </p>
-                        
-                        <p style="font-size: 13px; color: #888888; font-weight: normal; margin-bottom: 8px;">
-                            目前庫存：<strong style="color: <%= stock > 0 ? "var(--primary-color)" : "var(--price-color)" %>;"><%= stock %></strong> 件
-                        </p>
-                        
-                        <p style="color: var(--price-color); font-weight: 700; font-size: 18px; margin-bottom: 0;">$<%= unitPrice %></p>
-                    </div>
-                    
-                    <div class="product-action-group">
-                        <a href="html/product_main.jsp?id=<%= productId %>" class="btn-view-detail">
-                            🔍 檢視商品
-                        </a>
-                        
-                        <a href="html/add_to_cart.jsp?buy_id=<%= productId %>" class="btn-add-cart">
-                            🛒 加入購物車
-                        </a>
-                    </div>
-                </div>
-            <%
-                    }
-                } catch (Exception e) {
-                    out.println("<p style='color:red; text-align:center;'>資料庫連線或查詢失敗: " + e.getMessage() + "</p>");
-                    e.printStackTrace();
-                } finally {
-                    if (rs != null) try { rs.close(); } catch (SQLException e) {}
-                    if (stmt != null) try { stmt.close(); } catch (SQLException e) {}
-                    if (conn != null) try { conn.close(); } catch (SQLException e) {}
-                }
-            %>
+					while (rs.next()) {
+						hasResult = true;
+						String productId = rs.getString("Product_ID");
+						String productName = rs.getString("Product_Name");
+						int unitPrice = rs.getInt("Unit_Price");
+						String spec = rs.getString("Specification");
+						int stock = rs.getInt("Stock_Quantity"); 
+						
+						String imgPath = "images/" + productId + ".jpg"; 
+			%>
+						<div class="product">
+							<div>
+								<img src="<%= imgPath %>" onerror="this.onerror=null; this.src='images/default.jpg';" alt="<%= productName %>">
+								<h3><%= productName %></h3>
+								
+								<p style="font-size: 13px; color: #666666; font-weight: normal; margin-bottom: 4px;">
+									規格：<%= spec != null ? spec : "無" %>
+								</p>
+								
+								<p style="font-size: 13px; color: #888888; font-weight: normal; margin-bottom: 8px;">
+									目前庫存：<strong style="color: <%= stock > 0 ? "var(--primary-color)" : "var(--price-color)" %>;"><%= stock %></strong> 件
+								</p>
+								
+								<p style="color: var(--price-color); font-weight: 700; font-size: 18px; margin-bottom: 0;">$<%= unitPrice %></p>
+							</div>
+							
+							<div class="product-action-group">
+								<a href="html/product_main.jsp?id=<%= productId %>" class="btn-view-detail">
+									🔍 檢視商品
+								</a>
+								
+								<a href="html/add_to_cart.jsp?buy_id=<%= productId %>" class="btn-add-cart">
+									🛒 加入購物車
+								</a>
+							</div>
+						</div>
+			<%
+					}
+					
+					if (!hasResult) {
+			%>
+						<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+							<p style="font-size: 18px; font-weight: 500;"> 找不到與『<span style="color: var(--price-color);"><%= keyword %></span>』相關的醫療器材。</p>
+							<a href="index.jsp" style="display: inline-block; margin-top: 15px; color: var(--primary-color); text-decoration: underline;">返回查看所有商品</a>
+						</div>
+			<%
+					}
+				} catch (Exception e) {
+					out.println("<p style='color:red; text-align:center;'>資料庫連線或查詢失敗: " + e.getMessage() + "</p>");
+					e.printStackTrace();
+				} finally {
+					if (rs != null) try { rs.close(); } catch (SQLException e) {}
+					if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+					if (conn != null) try { conn.close(); } catch (SQLException e) {}
+				}
+						%>
             </section>
             
             <div class="pagination">
@@ -528,17 +614,17 @@ footer {
             </div>
             <div class="footer-section">
                 <h4>常見問題</h4>
-                <a href="html/info.html#service">售後服務問題</a>
-                <a href="html/info.html#service">會員常見問題</a>
-                <a href="html/info.html#shopping">購物常見說明</a>
-                <a href="html/info.html#privacy">隱私公告</a>
+                <a href="html/info.jsp#service">售後服務問題</a>
+                <a href="html/info.jsp#service">會員常見問題</a>
+                <a href="html/info.jsp#shopping">購物常見說明</a>
+                <a href="html/info.jsp#privacy">隱私公告</a>
             </div>
             <div class="footer-section">
                 <h4>關於商城</h4>
-                <a href="html/info.html#brand">品牌介紹</a>
-                <a href="html/info.html#store">門市據點</a>
-                <a href="html/info.html#news">最新消息</a>
-                <a href="html/info.html#news">商業合作</a>
+                <a href="html/info.jsp#brand">品牌介紹</a>
+                <a href="html/info.jsp#store">門市據點</a>
+                <a href="html/info.jsp#news">最新消息</a>
+                <a href="html/info.jsp#news">商業合作</a>
             </div>
             
             <div class="footer-section footer-right-group">
