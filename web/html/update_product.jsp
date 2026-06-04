@@ -3,6 +3,93 @@
 <html>
 <head>
     <title>修改商品</title>
+    <style>
+        :root {
+            --primary-color: #00A49E;      
+            --primary-hover: #008782;       
+            --secondary-bg: #E6F4F3;        
+            --text-color: #333333;          
+            --border-color: #E5E5E5;        
+            --price-color: #FF5A5F;         
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FFFFFF;
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 40px;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .card {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .form-row {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.25s ease;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 15px;
+            text-align: center;
+            background-color: var(--secondary-bg);
+            color: var(--primary-color);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
 <%
@@ -54,13 +141,30 @@ if(request.getParameter("Product_Name") != null) {
         ResultSet rs = con.createStatement().executeQuery(sql);
         if(rs.next()) {
 %>
-        <form action="update_product.jsp" method="post">
-            <input type="hidden" name="Product_ID" value="<%=rs.getString("Product_ID")%>">
-            商品名稱: <input type="text" name="Product_Name" value="<%=rs.getString("Product_Name")%>"><br>
-            規格: <input type="text" name="Specification" value="<%=rs.getString("Specification")%>"><br>
-            單價: <input type="text" name="Unit_Price" value="<%=rs.getInt("Unit_Price")%>"><br>
-            <input type="submit" value="修改">
-        </form>
+<h2>修改商品</h2>
+<div class="card">
+    <form action="update_product.jsp" method="post">
+        <div class="form-row">
+            <label>商品編號:</label>
+            <input type="text" name="Product_ID" value="<%=rs.getString("Product_ID")%>" readonly>
+        </div>
+        <div class="form-row">
+            <label>商品名稱:</label>
+            <input type="text" name="Product_Name" value="<%=rs.getString("Product_Name")%>">
+        </div>
+        <div class="form-row">
+            <label>規格:</label>
+            <input type="text" name="Specification" value="<%=rs.getString("Specification")%>">
+        </div>
+        <div class="form-row">
+            <label>單價:</label>
+            <input type="text" name="Unit_Price" value="<%=rs.getInt("Unit_Price")%>">
+        </div>
+        <input type="submit" value="更新商品" class="btn-submit">
+    </form>
+    <a href="product_list.jsp" class="btn-back">返回商品列表</a>
+</div>
+
 <%
         } else {
             out.println("找不到商品！");

@@ -3,6 +3,113 @@
 <html>
 <head>
     <title>商品列表</title>
+    <style>
+        :root {
+            --primary-color: #00A49E;      
+            --primary-hover: #008782;       
+            --secondary-bg: #E6F4F3;        
+            --text-color: #333333;          
+            --light-gray: #F8F9FA;          
+            --border-color: #E5E5E5;        
+            --price-color: #FF5A5F;         
+            --morandi-gray-btn: #F0F8F7;    
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FFFFFF;
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        a:hover {
+            color: var(--primary-hover);
+        }
+
+        table {
+            width: 90%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: var(--secondary-bg);
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-edit {
+            background-color: var(--primary-color);
+            color: #fff;
+            margin-right: 5px;
+        }
+
+        .btn-edit:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-delete {
+            background-color: var(--price-color);
+            color: #fff;
+        }
+
+        .btn-delete:hover {
+            opacity: 0.85;
+        }
+
+        .btn-home {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 6px rgba(0, 164, 158, 0.15);
+    }
+
+    .btn-home:hover {
+        background-color: var(--primary-hover);
+        box-shadow: 0 4px 12px rgba(0, 164, 158, 0.3);
+    }
+    </style>
+</head>
 </head>
 <body>
 <%
@@ -13,6 +120,10 @@
         return;
     }
 %>
+
+<div style="text-align: center; margin-bottom: 20px;">
+    <a href="../index.jsp" class="btn btn-home">返回首頁</a>
+</div>
 
 <h2>商品列表</h2>
 <a href="add_product.jsp">新增商品</a><br><br>
