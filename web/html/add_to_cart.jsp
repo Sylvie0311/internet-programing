@@ -35,5 +35,5 @@
     }
 
     //再連回product
-    response.sendRedirect("product_list.jsp");
+    response.sendRedirect("cart.jsp");
 %>

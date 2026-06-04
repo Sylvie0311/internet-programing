@@ -277,7 +277,7 @@
     <% } %>
 
     <div class="actions-box">
-        <a href="product_list2.jsp" class="btn-secondary">⬅ 繼續購物</a>
+        <a href="../index.jsp" class="btn-secondary">⬅ 繼續購物</a>
         
         <% if (hasItems) { %>
             <a href="checkout.jsp" class="btn-primary">確認結帳並付款 ➡</a>
