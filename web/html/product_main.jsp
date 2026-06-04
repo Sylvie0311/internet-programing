@@ -1,20 +1,20 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%
-    // 1. 動態接收商品 ID 參數
+
     String productId = request.getParameter("id");
     if(productId == null || productId.trim().equals("")) {
-        productId = "P001"; // 預設防呆商品
+        productId = "P001"; 
     }
 
-    // 2. 宣告商品動態變數
+
     String dbProductName = "";
     String dbSpecification = "";
     int dbUnitPrice = 0;
     String dbProductIntro = "";
     String dbImgName = "";
 
-    // 資料庫設定
+
     String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234";
@@ -27,7 +27,7 @@
         Class.forName("com.mysql.cj.jdbc.Driver");
         mainConn = DriverManager.getConnection(url, user, password);
         
-        // 假設資料庫 Product 資料表包含：Product_ID, Product_Name, Unit_Price, Specification, Description (可依實際欄位微調)
+
         String sql = "SELECT * FROM Product WHERE Product_ID = ?";
         mainStmt = mainConn.prepareStatement(sql);
         mainStmt.setString(1, productId);
@@ -36,11 +36,10 @@
         if (mainRs.next()) {
             dbProductName = mainRs.getString("Product_Name");
             dbUnitPrice = mainRs.getInt("Unit_Price");
-            // 防呆處理各欄位名稱
+        
             try { dbSpecification = mainRs.getString("Specification"); } catch(Exception e) { dbSpecification = "規格詳見說明"; }
             try { dbProductIntro = mainRs.getString("Description"); } catch(Exception e) { dbProductIntro = dbProductName + "，專業醫療級品質保障。"; }
         } else {
-            // 如果查無此 ID 的防呆回傳
             dbProductName = "醫療商品";
             dbUnitPrice = 0;
             dbSpecification = "-";
@@ -65,13 +64,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ==========================================================================
-   全域莫蘭迪高階風格定義
-   ========================================================================== */
+
 :root {
-    --primary-color: #00A49E;       /* 杏一醫療綠 */
+    --primary-color: #00A49E;       
     --primary-hover: #008782;
-    --morandi-pink: #F4C2C2;        /* 輕盈莫蘭迪灰粉 */
+    --morandi-pink: #F4C2C2;        
     --morandi-pink-hover: #E0A8A8;
     --text-color: #333333;
     --light-bg: #FAFBFB;
@@ -92,9 +89,8 @@ body {
     line-height: 1.6;
 }
 
-/* 頁首 Header */
 header {
-    background-color: #FFF9F2; /* 優雅柔和淡暖橘 bg */
+    background-color: #FFF9F2; 
     width: 100%;               
     padding: 15px 40px;          
     display: flex;             
@@ -114,7 +110,6 @@ header img:hover {
     transform: scale(1.1);
 }
 
-/* 主容器佈局 */
 .product-container {
     display: flex;
     max-width: 1200px;
@@ -171,7 +166,6 @@ header img:hover {
     font-weight: 700;
 }
 
-/* 數量選擇器與按鈕 */
 .amount {
     display: flex;
     align-items: center;
@@ -229,7 +223,6 @@ header img:hover {
     margin: 0;
 }
 
-/* 專業大按鈕 */
 .buy-button {
     margin-top: 10px;
 }
@@ -254,7 +247,6 @@ header img:hover {
     box-shadow: 0 6px 18px rgba(0, 164, 158, 0.25);
 }
 
-/* 評論專區美化 */
 .comment {
     max-width: 1200px;
     margin: 40px auto 80px auto;
@@ -287,7 +279,7 @@ hr {
     padding: 24px;
     border: 1px solid #F0D5D5;
     border-radius: 12px;
-    background-color: #FFFDFD; /* 質感極淡灰粉襯底 */
+    background-color: #FFFDFD; 
 }
 
 .t {
@@ -312,7 +304,7 @@ hr {
     background-color: var(--morandi-pink-hover);
 }
 
-/* 響應式斷點 RWD */
+
 @media (max-width: 767px) {
     header {
         padding: 12px 20px;
