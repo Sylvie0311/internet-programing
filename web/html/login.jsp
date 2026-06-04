@@ -4,46 +4,65 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<title>登入</title>
+	<title>會員登入</title>
 <style>
-/* 全域 */
+:root {
+    --primary-color: #00A49E;       
+    --primary-hover: #008782;
+    --light-bg: #FAFBFB;          
+    --text-main: #333333;
+    --border-color: #E5E5E5;
+}
+
 body {
-    font-family:'Noto Serif TC', serif;
-    background-color: #ffe5ec;
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: var(--light-bg);
     margin: 0;
     padding: 0;
+    color: var(--text-main);
 }
-.arrow{
-    width: 30px;
-    height: 30px;
-    margin:20px;
+
+.arrow {
+    width: 32px;
+    height: 32px;
+    margin: 20px 0 0 20px;
+    transition: transform 0.2s;
+    display: inline-block;
 }
-/* 容器自適應 */
+
+.arrow:hover {
+    transform: translateX(-3px);
+}
+
+
 .container {
-    max-width: 500px;
-    margin: 50px auto;
-    padding: 20px;
+    max-width: 450px;
+    margin: 60px auto;
+    padding: 0 20px;
 }
 
-/* 卡片樣式 */ 
 .card {
-    background: #fff;
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 40px 30px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 164, 158, 0.05);
 }
 
-/* 標題 */
+
 .title {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     font-size: 24px;
     text-align: center;
+    font-weight: 700;
+    color: #222222;
+    letter-spacing: 1px;
 }
 
-/* 表單樣式 */
+
 .form {
     display: grid;
-    gap: 15px; 
+    gap: 20px; 
 }
   
 .form-row {
@@ -52,73 +71,66 @@ body {
 }
   
 label {
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-size: 14px;
+    font-weight: 500;
+    color: #555555;
 }
   
 input[type="text"], 
-input[type="password"],
-input[type="email"],
-input[type="tel"] {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+input[type="password"] {
+    padding: 12px 14px;
+    border: 1px solid #D1D5D5;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.25s;
+    background-color: #FFFFFF;
 }
 
-/* 表單動作 */ 
+input[type="text"]:focus, 
+input[type="password"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 164, 158, 0.1);
+}
+
+
 .form-actions {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    align-items: center;
     margin-top: 10px;
 }
   
 .s {
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 12px 20px;
+    border-radius: 8px;
     text-align: center;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.25s;
     width: 100%;
-    max-width: 300px;
 }
   
 .s.primary {
-    background: #4a90e2;
-    color: #fff;
+    background: var(--primary-color);
+    color: #FFFFFF;
     border: none;
-    text-decoration: none;
-    width:250px;
-}
-  
-.s.link {
-    background: transparent;
-    color: #4a90e2;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 12px rgba(0, 164, 158, 0.15);
 }
 
-.s.link:hover {
-    text-decoration: underline;
+.s.primary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 18px rgba(0, 164, 158, 0.25);
 }
 
-/* 隱藏欄位 */
-.hidden {
-    display: none;
-}
-
-/* ===== 響應式 ===== */
-@media (max-width: 600px) {
+@media (max-width: 480px) {
     .container {
-        margin: 20px auto;
-        padding: 10px;
+        margin: 30px auto;
     }
     .card {
-        padding: 20px;
-    }
-    .s {
-        width: 100%;
-    }
-    .s.primary{
-        width:70%;
+        padding: 30px 20px;
     }
 }
 </style>
@@ -129,7 +141,7 @@ input[type="tel"] {
 	</a>
   <main class="container">
     <section class="card">
-      <h1 class="title">登入</h1>
+      <h1 class="title">會員登入</h1>
       <form class="form" action="check.jsp" method="post" id="loginForm">
         <div class="form-row">
           <label for="login-id">帳號：</label>
