@@ -1,5 +1,6 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -69,9 +70,13 @@ h1 {
   height: 12px;  /* 更小的高度 */
 }
 
-.product-img {
-  width: 20px;   /* 更小的寬度 */
-  height: 12px;  /* 更小的高度 */
+
+.review-items img {
+  width: 200px;        
+  height: 200px;       
+  object-fit: cover;   
+  border-radius: 8px;  
+  border: 1px solid #ddd; 
 }
 
 .review-content {
@@ -328,10 +333,8 @@ h1 {
 <div class="review-box">
 
   <h2 class="title">我的評論與評分：</h2>
-  <!-- 評論 A -->
   <div class="review-items">
-    <div class="product-img"></div>
-    <img src="../images/人工皮.jpg" alt="ARTIFICIAL SKIN">
+    <img src="../images/P007.jpg" alt="ARTIFICIAL SKIN" class="product-img">
 
     <div class="review-content">
       <div class="date">2025/11/20</div>
@@ -344,8 +347,8 @@ h1 {
         <input type="radio" id="a-star1" name="rating-a"><label for="a-star1">&#9733;</label>
       </div>
 
-      <div class="comment">最好用的衛生棉！最不易側漏！一定要趁特價時囤貨！</div>
-      <div class="product-name">蕾妮亞零觸感特薄(40cm)</div>
+      <div class="comment">好用防水，不容易留疤痕，推薦</div>
+      <div class="product-name">親水性敷料人工皮</div>
     </div>
 
     <div class="actionss">
@@ -356,10 +359,8 @@ h1 {
 
   <hr>
 
-  <!-- 評論 B -->
   <div class="review-items">
-    <div class="product-img"></div>
-    <img src="../images/人工皮.jpg" alt="CANE">
+    <img src="../images/P008.jpg" alt="CANE" class="product-img">
 
     <div class="review-content">
       <div class="date">2025/12/10</div>
@@ -372,8 +373,8 @@ h1 {
         <input type="radio" id="b-star1" name="rating-b"><label for="b-star1">&#9733;</label>
       </div>
 
-      <div class="comment">吸力好 很乾爽 趁特價購入</div>
-      <div class="product-name">蕾妮亞零觸感特薄(22.5cm)</div>
+      <div class="comment">便宜好用，穩定性高</div>
+      <div class="product-name">自立式手杖(右手用)</div>
     </div>
 
     <div class="actionss">
