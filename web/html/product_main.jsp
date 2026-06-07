@@ -90,7 +90,7 @@ body {
 }
 
 header {
-    background-color: #FFF9F2; 
+    background-color: #00A49E; 
     width: 100%;               
     padding: 15px 40px;          
     display: flex;             
