@@ -1,15 +1,29 @@
 <%@ page import = "java.sql.*, java.util.*"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-    // 1. 取得目前登入的會員帳號。在實際系統中，通常會從 session 中撈取，這邊做一個防呆：如果 session 沒有就先用預設 '02' 測試
-    String loginId = (String) session.getAttribute("loginId");
-    if (loginId == null || loginId.trim().equals("")) {
-        loginId = "02"; // 測試用預設顧客帳號，若要測試管理員可改為 "root"
+    // 1. 同步取 session 的登入帳號
+    Object sessionLoginId = session.getAttribute("id");
+    if (sessionLoginId == null) {
+        sessionLoginId = session.getAttribute("loginId");
+    }
+    String loginId = "";
+    if (sessionLoginId != null) {
+        loginId = String.valueOf(sessionLoginId).trim();
+    }
+    
+    if (loginId.equals("")) {
+        loginId = "user03"; 
     }
 
-    // 2. 宣告存放資料庫欄位的變數
     String dbMemberId = loginId;
-    String dbRole = "customer";
+    
+
+    String dbRole = (String) session.getAttribute("role");
+    if (dbRole == null) {
+        dbRole = "customer"; // 預設值
+    } else {
+        dbRole = dbRole.trim();
+    }
     
     String dbName = "未命名會員";
     String dbGender = "不透露";
@@ -18,55 +32,65 @@
     String dbPhone = "0912-345-678";
     String dbEmail = "user@example.com";
 
-    // 3. 開始連線 MySQL 資料庫
-    String url = "jdbc:mysql://localhost:3306/members?serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false";
-    String user = "root";
-    String password = "board";
+    String urlMembers = "jdbc:mysql://localhost:3306/members?serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false";
+    String userDb = "root";
+    String passwordDb = "board"; 
 
-    Connection conn = null;
-    PreparedStatement stmt = null;
-    ResultSet rs = null;
+    Connection connMem = null;
+    PreparedStatement stmtMem = null;
+    ResultSet rsMem = null;
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        conn = DriverManager.getConnection(url, user, password);
+        connMem = DriverManager.getConnection(urlMembers, userDb, passwordDb);
         
-        // 查詢符合目前登入 ID 的會員資料
-        String sql = "SELECT * FROM members WHERE id = ?";
-        stmt = conn.prepareStatement(sql);
-        stmt.setString(1, loginId);
-        rs = stmt.executeQuery();
+        String sql = "SELECT * FROM members WHERE LOWER(id) = LOWER(?)";
+        stmtMem = connMem.prepareStatement(sql);
+        stmtMem.setString(1, loginId);
+        rsMem = stmtMem.executeQuery();
 
-        if (rs.next()) {
-            dbMemberId = rs.getString("id");
-            dbRole = rs.getString("role");
+        if (rsMem.next()) {
+            dbMemberId = rsMem.getString("id");
             
-             
-            // 為了不讓原本網頁的姓名、信箱變成空白，如果撈出來是 root，動態給管理者名稱，是 02 就給娜魯灣。
-            if(dbMemberId.equals("root")) {
-                dbName = "系統管理員 (root)";
-                dbEmail = "admin@medicalsystem.com";
-                dbGender = "男";
+
+            if (session.getAttribute("role") == null) {
+                String rawRole = rsMem.getString("role");
+                if (rawRole != null) {
+                    dbRole = rawRole.trim();
+                }
+            }
+        }
+        
+
+        if(dbRole.equalsIgnoreCase("admin")) {
+            dbName = "系統管理員 (" + dbMemberId + ")";
+            dbEmail = "admin@medicalsystem.com";
+            dbGender = "男";
+        } else {
+            if(dbMemberId.equalsIgnoreCase("user03")) {
+                dbName = "顧客會員 (user03)";
+                dbEmail = "user03@example.com";
             } else {
                 dbName = "娜魯灣 娜魯吐 娜魯水 娜魯7-11";
                 dbEmail = "wanyiting@example.com";
-                dbGender = "女";
             }
+            dbGender = "女";
         }
+        
     } catch (Exception e) {
-        dbName = "資料庫讀取失敗";
+        dbName = "會員資料庫讀取失敗：" + e.getMessage();
     } finally {
-        if (rs != null) rs.close();
-        if (stmt != null) stmt.close();
-        if (conn != null) conn.close();
+        if (rsMem != null) rsMem.close();
+        if (stmtMem != null) stmtMem.close();
+        if (connMem != null) connMem.close();
     }
 %>
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我的評論與評分</title>
+  <title>會員中心</title>
   
 <style>
 * {
@@ -81,32 +105,73 @@ body {
   padding: 20px;
 }
 
-/* 箭頭返回 */
 .arrow {
   width: 30px;
   height: 30px;
   cursor: pointer;
 }
 
-/* 標題 */
 h1 {
   text-align: center;
   border-bottom: 2px solid #000;
   margin-bottom: 20px;
   padding-bottom: 10px;
+  outline: none;
 }
 
-/* 我的評論標題 */
-.title {
-  padding: 10px;
-  font-size: 18px;
-  border-bottom: 2px solid #000;
-  margin-bottom: 10px;
-  text-align: left; 
+
+.admin-header-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 90%;
+  max-width: 900px;
+  margin: 0 auto;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
 }
 
-/* 評論區塊 */
-.review-box, .search-box, #member {
+.admin-header-container h1 {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.btn-admin-manage {
+  position: absolute;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(135deg, #e8b4b8 0%, #d89499 100%);
+  padding: 10px 22px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(232, 180, 184, 0.4);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-admin-manage:hover {
+  background: linear-gradient(135deg, #d89499 0%, #c47c81 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(232, 180, 184, 0.6);
+}
+
+.btn-admin-manage:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(232, 180, 184, 0.4);
+}
+
+.search-box, #member {
   width: 90%;
   max-width: 900px;
   margin: 40px auto;
@@ -117,271 +182,152 @@ h1 {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-/* 單筆評論 */
-.review-items {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 20px 0;
-  border-bottom: 1px solid #ccc;
-  gap: 10px;
-}
-
-.product-ing {
-  width: 0px;   
-  height: 12px;  
-}
-
-
-.review-items img {
-  width: 200px;        
-  height: 200px;       
-  object-fit: cover;   
-  border-radius: 8px;  
-  border: 1px solid #ddd; 
-}
-
-.review-content {
-  flex: 1;
-}
-
-.date {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 5px;
-}
-
-.stars {
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: left;
-  font-size: 20px;
-  letter-spacing: 3px;
-  margin-bottom: 5px;
-}
-
-.stars input {
-  display: none;
-}
-
-.stars label {
-  color: #ccc;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.stars label:hover,
-.stars label:hover ~ label {
-  color: gold;
-}
-
-.stars input:checked ~ label {
-  color: gold;
-}
-
-.comment {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 5px;
-}
-
-.product-name {
-  font-size: 16px;
-  font-weight: bold;
-  color: #444;
-}
-
-/* 編輯與刪除 */
-.actionss {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-end;
-  min-width: 80px;
-}
-
-.actionss a {
-  text-decoration: none;
-  color: #007bff;
-  font-size: 14px;
-  margin: 3px 0;
-  transition: color 0.2s;
-}
-
-.actionss a:hover {
-  color: #0056b3;
-}
-
-/* 歷史訂單表格 */
-h1 {
-  border: none;
-  border-bottom: none;
-  outline: none;
-}
-
 
 .order-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   margin-top: 20px;
-  font-size: 16px;
+  font-size: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e1e6eb;
 }
 
 .order-table th {
-  background-color: #f2f2f2;
-  padding: 10px;
-  border-bottom: 2px solid #000;
+  background-color: #f7eff1;
+  color: #6e5557;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-bottom: 2px solid #e8b4b8;
   text-align: left;
+  letter-spacing: 0.5px;
 }
 
 .order-table td {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0f2f5;
+  color: #4a4a4a;
+  word-break: break-all;
+  transition: background-color 0.2s ease;
 }
 
-.detail-s {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: bold;
+.order-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
-.detail-s:hover {
-  text-decoration: underline;
-  color: #0056b3;
+.order-table tbody tr:hover td {
+  background-color: #fff0f3;
 }
 
-.search-bar img {
-  height: 20px; 
-  width: auto;
-  vertical-align: middle;
-  margin-right: 10px;
-  border: none;
-}
-
-.search-s {
-  margin-left: 10px;
-  border: none;        
-  background: none;     
-  padding: 0;          
-  outline: none;       
-}
-
-.search-s img {
-  border: none;    
-  outline: none;        
-}
-
-/* 會員資料 */
 .member-box {
   display: flex;
-  flex-direction:row;
+  flex-direction: row;
   gap: 12px;
   font-size: 20px;
   line-height: 1.6;
   align-items: center;
-  margin:20px;
+  margin: 20px;
 }
 
-.member-box a.history-link {
-  display: inline-block;
-  margin-top: 10px;
-  font-size: 16px;
-  color: #007bff;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-.member-box a.history-link:hover {
-  color: #0056b3;
-  text-decoration: underline;
-}
-
-.member-head{
-  width:30%;
+.member-head {
+  width: 30%;
   justify-content: center;
-  margin-left:60px;
+  margin-left: 60px;
   margin-right: 40px;
 }
-.member-head img{
+
+.member-head img {
   width: 250px;
   height: 250px;
   border-radius: 30%;
   border: 2.5px solid black;
   object-fit: cover;
   margin-bottom: 10px;
- 
 }
-.member-info{
-  width:70%;
+
+.member-info {
+  width: 70%;
   display: flex;
   flex-direction: column;
   gap: 6px;
   justify-content: center;
 }
-/* ===== 響應式 ===== */
+
+.manager {
+  display: flex;
+  justify-content: center;
+  margin: -20px auto 40px auto;
+  width: 90%;
+  max-width: 900px;
+}
+
+.manager a {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: #333333;
+  background-color: #E8B4B8; 
+  padding: 12px 24px;
+  border: 2px solid #000000;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 4px 4px 0px #000000;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.manager a:hover {
+  background-color: #D8A4A8;
+  color: #222222;
+}
+
+.manager a:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000;
+}
+
 @media (max-width: 768px) {
-  .review-items {
-      flex-direction: column;
-      align-items: flex-start;
+  .order-table th, .order-table td { 
+    font-size: 14px; 
+    padding: 10px; 
   }
-
-  .actionss {
-      flex-direction: row;
-      gap: 10px;
-      margin-top: 10px;
-      min-width: auto;
-  }
-
-  .stars {
-      font-size: 18px;
-      letter-spacing: 2px;
-  }
-
-  .product-img {
-      width: 70px;
-      height: 70px;
-      margin-bottom: 10px;
-  }
-
-  .order-table th, .order-table td {
-      font-size: 14px;
-      padding: 8px;
-  }
-
-  body {
-      padding: 10px;
-  }
-
-  .title {
-      text-align: center;
-  }
-
-  .member-box {
+  .member-box { 
     flex-direction: column; 
-    text-align: center;    
-    margin: 10px;          
-    gap: 20px;             
+    text-align: center; 
+    margin: 10px; 
+    gap: 20px; 
   }
-
-  .member-head {
-    width: 100%;           
-    margin: 0;             
-    display: flex;
-    justify-content: center;
+  .member-head { 
+    width: 100%; 
+    margin: 0; 
+    display: flex; 
+    justify-content: center; 
   }
-
-  .member-head img {
-    width: 180px;         
-    height: 180px;
+  .member-head img { 
+    width: 180px; 
+    height: 180px; 
   }
-
-  .member-info {
-    width: 100%;           
-    align-items: center;  
+  .member-info { 
+    width: 100%; 
+    align-items: center; 
   }
-
-  .member-info p {
-    font-size: 18px;       
+  .member-info p { 
+    font-size: 18px; 
+  }
+  .admin-header-container { 
+    flex-direction: column; 
+    gap: 12px; 
+  }
+  .btn-admin-manage { 
+    position: static; 
+    width: 100%; 
+    justify-content: center; 
+  }
+  .manager a { 
+    width: 100%; 
+    justify-content: center; 
   }
 }
 </style>
@@ -390,183 +336,201 @@ h1 {
   <a href="../index.jsp">
     <img src="../images/arrow.png" class="arrow">
   </a>
-<div class="review-box">
 
-  <h2 class="title">我的評論與評分：</h2>
-  <div class="review-items">
-    <img src="../images/P007.jpg" alt="ARTIFICIAL SKIN" class="product-img">
+<%
+    String urlBoard = "jdbc:mysql://localhost:3306/board?serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false";
+    String userBoard = "root";
+    String passwordBoard = "1234"; 
+    
+    Connection connBoard = null;
+    PreparedStatement stmtBoard = null;
+    ResultSet rsBoard = null;
+%>
 
-    <div class="review-content">
-      <div class="date">2025/11/20</div>
+<%
+  if (dbRole.equalsIgnoreCase("admin")) {
+%>
+    <div class="admin-header-container">
+      <a href="product_list.jsp" class="btn-admin-manage">進入商家後台管理</a>
+    </div>
 
-      <div class="stars">
-        <input type="radio" id="a-star5" name="rating-a"><label for="a-star5">&#9733;</label>
-        <input type="radio" id="a-star4" name="rating-a"><label for="a-star4">&#9733;</label>
-        <input type="radio" id="a-star3" name="rating-a"><label for="a-star3">&#9733;</label>
-        <input type="radio" id="a-star2" name="rating-a"><label for="a-star2">&#9733;</label>
-        <input type="radio" id="a-star1" name="rating-a"><label for="a-star1">&#9733;</label>
+    <div class="search-box">
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th>留言編號</th>
+            <th>訪客姓名</th>
+            <th>E-mail</th>
+            <th>留言主題</th>
+            <th>留言內容</th>
+            <th>留言時間</th>
+          </tr>
+        </thead>
+        <tbody>
+        <%
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                connBoard = DriverManager.getConnection(urlBoard, userBoard, passwordBoard);
+
+                String sqlGuest = "SELECT * FROM guestbook ORDER BY GBNO DESC";
+                stmtBoard = connBoard.prepareStatement(sqlGuest);
+                rsBoard = stmtBoard.executeQuery();
+                
+                boolean hasData = false;
+                while(rsBoard.next()) {
+                    hasData = true;
+                    int gbNo = rsBoard.getInt("GBNO");
+                    String gbName = rsBoard.getString("GBName");
+                    String mail = rsBoard.getString("Mail");
+                    String subject = rsBoard.getString("Subject");
+                    String content = rsBoard.getString("Content");
+                    String putDate = rsBoard.getString("Putdate");
+        %>
+                    <tr>
+                      <td><%= gbNo %></td>
+                      <td><strong><%= gbName %></strong></td>
+                      <td><%= (mail == null ? "無" : mail) %></td>
+                      <td><%= subject %></td>
+                      <td><%= content %></td>
+                      <td><%= putDate %></td>
+                    </tr>
+        <%
+                }
+                if(!hasData) {
+        %>
+                    <tr>
+                      <td colspan="6" style="text-align:center; color:#888;">目前留言板尚無任何資料。</td>
+                    </tr>
+        <%
+                }
+            } catch(Exception e) {
+        %>
+                <tr>
+                  <td colspan="6" style="text-align:center; color:red;">留言板資料庫連線失敗：<%= e.getMessage() %></td>
+                </tr>
+        <%
+            } finally {
+                if (rsBoard != null) rsBoard.close();
+                if (stmtBoard != null) stmtBoard.close();
+                if (connBoard != null) connBoard.close();
+            }
+        %>
+        </tbody>
+      </table>
+    </div>
+<%
+  } else {
+%>
+    <h1>歷史訂單</h1>
+    <div class="search-box">
+      <div style="background-color: #e6f7ff; padding: 8px; border-radius: 5px; font-size: 14px; color: #0050b3; margin-bottom: 15px;">
+       系統提示：目前辨識登入帳號為「<strong><%= loginId %></strong>」，正在動態撈取該帳號的訂單...
       </div>
 
-      <div class="comment">好用防水，不容易留疤痕，推薦</div>
-      <div class="product-name">親水性敷料人工皮</div>
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th>訂單編號</th>
+            <th>訂購日期</th>
+            <th>總金額</th>
+            <th>訂單狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+        <%
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                connBoard = DriverManager.getConnection(urlBoard, userBoard, passwordBoard);
+
+                String sqlOrder = "SELECT * FROM orders WHERE LOWER(trim(member_id)) = LOWER(?) ORDER BY order_date DESC";
+                stmtBoard = connBoard.prepareStatement(sqlOrder);
+                stmtBoard.setString(1, loginId);
+                rsBoard = stmtBoard.executeQuery();
+                
+                boolean hasOrder = false;
+                while(rsBoard.next()) {
+                    hasOrder = true;
+                    String orderId = rsBoard.getString("order_id");
+                    String orderDate = rsBoard.getString("order_date");
+                    int totalAmount = rsBoard.getInt("total_amount");
+                    String status = rsBoard.getString("status");
+        %>
+                    <tr>
+                      <td><%= orderId %></td>
+                      <td><%= orderDate %></td>
+                      <td>$<%= java.text.NumberFormat.getNumberInstance().format(totalAmount) %></td>
+                      <td><%= status %></td>
+                    </tr>
+        <%
+                }
+                if(!hasOrder) {
+        %>
+                    <tr>
+                      <td colspan="4" style="text-align:center; color:#888;">抱歉，資料庫中找不到帳號「<%= loginId %>」的訂單紀錄。</td>
+                    </tr>
+        <%
+                }
+            } catch(Exception e) {
+        %>
+                <tr>
+                  <td colspan="4" style="text-align:center; color:red;">訂單資料庫連線失敗：<%= e.getMessage() %></td>
+                </tr>
+        <%
+            } finally {
+                if (rsBoard != null) rsBoard.close();
+                if (stmtBoard != null) stmtBoard.close();
+                if (connBoard != null) connBoard.close();
+            }
+        %>
+        </tbody>
+      </table>
     </div>
+<%
+  } 
+%>
 
-    <div class="actionss">
-      <a href="#">[編輯]</a><br>
-      <a href="#">[刪除]</a>
-    </div>
-  </div>
-
-  <hr>
-
-  <div class="review-items">
-    <img src="../images/P008.jpg" alt="CANE" class="product-img">
-
-    <div class="review-content">
-      <div class="date">2025/12/10</div>
-
-      <div class="stars">
-        <input type="radio" id="b-star5" name="rating-b"><label for="b-star5">&#9733;</label>
-        <input type="radio" id="b-star4" name="rating-b"><label for="b-star4">&#9733;</label>
-        <input type="radio" id="b-star3" name="rating-b"><label for="b-star3">&#9733;</label>
-        <input type="radio" id="b-star2" name="rating-b"><label for="b-star2">&#9733;</label>
-        <input type="radio" id="b-star1" name="rating-b"><label for="b-star1">&#9733;</label>
+    <div class="box" id="member">
+      <h1>會員介面</h1>
+      <div class="member-box">
+        <div class="member-head">
+          <img src="../images/93642.jpg" alt="會員頭像">
+        </div>
+        <div class="member-info">
+          <p>帳號：<%= dbMemberId %></p>
+          <p>身分權限：<%= dbRole %></p>
+          <p>性別：<%= dbGender %></p>
+          <p>生日：<%= dbBirth %></p>
+          <p>地址：<%= dbAddress %></p>
+          <p>電話：<%= dbPhone %></p>
+          <p>電子信箱：<%= dbEmail %></p>
+        </div>
       </div>
-
-      <div class="comment">便宜好用，穩定性高</div>
-      <div class="product-name">自立式手杖(右手用)</div>
     </div>
-
-    <div class="actionss">
-      <a href="#">[編輯]</a><br>
-      <a href="#">[刪除]</a>
-    </div>
-  </div> 
-</div>
-
-<h1>歷史訂單</h1>
-  <div class="search-box">
-  <div class="search-bar">
-    <link rel="stylesheet" href="../index.jsp">
-    <span class="bracket">[</span>
-    <input type="text" placeholder="請輸入訂單編號" id="orderSearch">
-    <button class="search-s">
-      <img src="../images/magnifier.png" alt="搜尋">
-    </button>
-    <span class="bracket">]</span>
-  </div>
-
-  <table class="order-table">
-    <tr>
-      <th>訂單編號</th>
-      <th>訂購日期</th>
-      <th>總金額</th>
-      <th>訂單狀態</th>
-      <th>動作</th>
-    </tr>
-
-    <tr>
-      <td>KB1768</td>
-      <td>2025/11/20</td>
-      <td>$1,500</td>
-      <td>待出貨</td>
-      <td><a href="#" class="detail-s">[查看詳情]</a></td>
-    </tr>
-
-    <tr>
-      <td>KL3978</td>
-      <td>2025/6/10</td>
-      <td>$7,430</td>
-      <td>已出貨</td>
-      <td><a href="#" class="detail-s">[查看詳情]</a></td>
-    </tr>
-
-    <tr>
-      <td>KA7217</td>
-      <td>2025/12/10</td>
-      <td>$8,733</td>
-      <td>待出貨</td>
-      <td><a href="#" class="detail-s">[查看詳情]</a></td>
-    </tr>
-
-    <tr>
-      <td>BC1038</td>
-      <td>2025/12/12</td>
-      <td>$10,345</td>
-      <td>待出貨</td>
-      <td><a href="#" class="detail-s">[查看詳情]</a></td>
-    </tr>
-
-    <tr>
-      <td>LT1237</td>
-      <td>2025/11/11</td>
-      <td>$13,729</td>
-      <td>已出貨</td>
-      <td><a href="#" class="detail-s">[查看詳情]</a></td>
-    </tr>
-  </table>
-</div>
-
-<div class="box" id="member">
-  <h1>會員介面</h1>
-  <div class="member-box">
-    <div class="member-head">
-      <img src="../images/93642.jpg" alt="會員頭像">
-    </div>
-    <div class="member-info">
-      <p>帳號：<%= dbMemberId %></p>
-      <p>身分權限：<%= dbRole %></p>
-      <p>姓名：<%= dbName %></p>
-      <p>性別：<%= dbGender %></p>
-      <p>生日：<%= dbBirth %></p>
-      <p>地址：<%= dbAddress %></p>
-      <p>電話：<%= dbPhone %></p>
-      <p>電子信箱：<%= dbEmail %></p>
-    </div>
-  </div>
-</div>
 
 <script>
-/*歷史訂單:搜尋欄*/
 document.addEventListener('DOMContentLoaded', function() {
-    // 選取搜尋輸入框
-    const searchInput = document.querySelector('.search-bar input');
-    // 選取搜尋按鈕
-    const searchBtn = document.querySelector('.search-s');
-    //選取表格中所有的資料列 
-    const tableRows = document.querySelectorAll('.order-table tr:not(:first-child)');
+    const searchInput = document.getElementById('orderSearch');
+    const tableRows = document.querySelectorAll('.order-table tbody tr');
 
-    if (!searchInput) return; 
+    if (!searchInput || tableRows.length === 0) return; 
 
-   
     function filterOrders() {
         const filterValue = searchInput.value.toUpperCase().trim();
-
         tableRows.forEach(row => {
-            // 抓取每一列的第一個欄td(訂單編號)
             const orderIdCell = row.getElementsByTagName('td')[0];
-            
+            const secondCell = row.getElementsByTagName('td')[1];
             if (orderIdCell) {
-                const textValue = orderIdCell.textContent || orderIdCell.innerText;
-                
-                // 檢查訂單編號是否包含關鍵字
-                if (textValue.toUpperCase().indexOf(filterValue) > -1) {
-                    row.style.display = ""; // 顯示符合的列
+                const textValue1 = orderIdCell.textContent || orderIdCell.innerText;
+                const textValue2 = secondCell ? (secondCell.textContent || secondCell.innerText) : "";
+                if (textValue1.toUpperCase().indexOf(filterValue) > -1 || textValue2.toUpperCase().indexOf(filterValue) > -1) {
+                    row.style.display = ""; 
                 } else {
-                    row.style.display = "none"; // 隱藏不符合的列
+                    row.style.display = "none"; 
                 }
             }
         });
     }
- 
     searchInput.addEventListener('keyup', filterOrders);
-
-    if (searchBtn) {
-        searchBtn.addEventListener('click', function(e) {
-            e.preventDefault(); // 防止表單提交
-            filterOrders();
-        });
-    }
 });
 </script>
 </body>
