@@ -1,8 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page import="java.util.*,java.sql.*" %>
 <html>
-<html>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,7 +53,6 @@ h1.site-title {
     color: var(--primary-color);
     letter-spacing: 1.5px;
 }
-
 
 nav {
     background-color: var(--primary-color);
@@ -168,7 +165,6 @@ nav {
     border-radius: 15px;
 }
 
-
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -200,7 +196,7 @@ nav {
 
 .products {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 24px;
     margin-bottom: 50px;
     min-height: 850px;
@@ -259,7 +255,7 @@ nav {
 
 .btn-action {
     display: block;
-    width: 160px; /* 固定寬度一致 */
+    width: 160px; 
     text-align: center;
     padding: 10px 0;
     border-radius: 6px;
@@ -294,7 +290,6 @@ nav {
     cursor: not-allowed;
 }
 
-
 @keyframes cardFadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -311,8 +306,7 @@ nav {
     gap: 8px;
 }
 
-.pagination span {
-    cursor: pointer;
+.pagination a {
     font-size: 14px;
     font-weight: 500;
     width: 36px;
@@ -326,16 +320,23 @@ nav {
     border-radius: 6px; 
 }
 
-.pagination span.active {
+.pagination a.active {
     background-color: var(--primary-color); 
     color: #FFFFFF;
     border-color: var(--primary-color);
+    pointer-events: none; /* 當前頁不可再點擊 */
 }
 
-.pagination span:hover:not(.active) {
+.pagination a:hover:not(.active) {
     background-color: var(--secondary-bg);
     color: var(--primary-color);
     border-color: var(--primary-color);
+}
+
+.pagination a.disabled {
+    color: #ccc;
+    border-color: #eee;
+    pointer-events: none; /* 停用前後頁按鈕 */
 }
 
 footer {
@@ -418,8 +419,8 @@ footer {
     margin-top: 20px;
 }
 
-@media (max-width: 1024px) {
-    .products { grid-template-columns: repeat(3, 1fr); min-height: 1150px; }
+@media (max-width: 992px) {
+    .products { grid-template-columns: repeat(2, 1fr); min-height: 1150px; }
 }
 
 @media (max-width: 768px) {
@@ -432,7 +433,7 @@ footer {
     .footer-section { padding: 0; }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
     h1.site-title { font-size: 20px; }
     .products { grid-template-columns: repeat(1, 1fr); min-height: 3200px; }
     .product { height: 500px; }
@@ -452,7 +453,6 @@ footer {
                     <img src="images/sign-in.png" class="up-left" alt="Sign In">
                 </a>
                 <%
-                    // 獲取當前 Session中的使用者身分與 ID
                     String loginId = (String) session.getAttribute("id");
                     String loginRole = (String) session.getAttribute("role");
 
@@ -474,8 +474,8 @@ footer {
                 %>
             </div>
             <form action="index.jsp" method="get" class="search-wrapper">
-				<input type="text" name="keyword" value="<%= request.getParameter("keyword") != null ? request.getParameter("keyword") : "" %>" placeholder="搜尋商品..." class="search-bar" id="search-input">
-			</form>
+                <input type="text" name="keyword" value="<%= request.getParameter("keyword") != null ? request.getParameter("keyword") : "" %>" placeholder="搜尋商品..." class="search-bar" id="search-input">
+            </form>
         </div>
       
         <div class="nav-right">
@@ -499,112 +499,162 @@ footer {
             <h2 class="hot">🔥熱銷商品🔥</h2>
 
             <section class="products" id="product-container">
-			
-			<%
-				request.setCharacterEncoding("UTF-8");
-				String keyword = request.getParameter("keyword");
-			
+            
+            <%
+                request.setCharacterEncoding("UTF-8");
+                String keyword = request.getParameter("keyword");
+                if (keyword == null) keyword = "";
+
+                //分頁
+                int pageSize = 9; // 每頁顯示9筆
+                int currentPage = 1; // 預設第1頁
+                String pageParam = request.getParameter("page");
+                if (pageParam != null && !pageParam.trim().isEmpty()) {
+                    try {
+                        currentPage = Integer.parseInt(pageParam);
+                    } catch (NumberFormatException e) {
+                        currentPage = 1;
+                    }
+                }
+                int offset = (currentPage - 1) * pageSize; // 計算資料庫查詢起始點
+                int totalRecords = 0; // 總資料筆數
+                int totalPages = 1;   // 總頁數
+                // ---------------------------------
+            
                 Connection conn = null;
-                PreparedStatement pstmt = null;
-                ResultSet rs = null;
+                PreparedStatement pstmtCount = null;
+                PreparedStatement pstmtData = null;
+                ResultSet rsCount = null;
+                ResultSet rsData = null;
+
                 try {
                     Class.forName("com.mysql.cj.jdbc.Driver");
-
                     String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
                     String user = "root";
                     String password = "1234";
                     conn = DriverManager.getConnection(url, user, password);
                     
-                    String sql = "";
-        
-					if (keyword != null && !keyword.trim().isEmpty()) {
-						sql = "SELECT p.Product_ID, p.Product_Name, p.Unit_Price, p.Specification, IFNULL(i.Quantity, 0) AS Stock_Quantity " +
-							  "FROM Product p " +
-							  "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID " +
-							  "WHERE p.Product_Name LIKE ?";
-						pstmt = conn.prepareStatement(sql);
-						pstmt.setString(1, "%" + keyword.trim() + "%");
-					} else {
-						sql = "SELECT p.Product_ID, p.Product_Name, p.Unit_Price, p.Specification, IFNULL(i.Quantity, 0) AS Stock_Quantity " +
-							  "FROM Product p " +
-							  "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID";
-						pstmt = conn.prepareStatement(sql);
-					}
-					 
-					rs = pstmt.executeQuery();
-					boolean hasResult = false;
+                    //查詢符合條件的商品總筆數用來計算總頁數
+                    String countSql = "";
+                    if (!keyword.trim().isEmpty()) {
+                        countSql = "SELECT COUNT(*) FROM Product WHERE Product_Name LIKE ?";
+                        pstmtCount = conn.prepareStatement(countSql);
+                        pstmtCount.setString(1, "%" + keyword.trim() + "%");
+                    } else {
+                        countSql = "SELECT COUNT(*) FROM Product";
+                        pstmtCount = conn.prepareStatement(countSql);
+                    }
+                    rsCount = pstmtCount.executeQuery();
+                    if (rsCount.next()) {
+                        totalRecords = rsCount.getInt(1);
+                    }
+                    
+                    // 計算總頁數
+                    totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+                    if (totalPages == 0) totalPages = 1; 
 
-					while (rs.next()) {
-						hasResult = true;
-						String productId = rs.getString("Product_ID");
-						String productName = rs.getString("Product_Name");
-						int unitPrice = rs.getInt("Unit_Price");
-						String spec = rs.getString("Specification");
-						int stock = rs.getInt("Stock_Quantity"); 
-						
-						String imgPath = "images/" + productId + ".jpg"; 
-			%>
-						<div class="product">
-							<div>
-								<img src="<%= imgPath %>" onerror="this.onerror=null; this.src='images/default.jpg';" alt="<%= productName %>">
-								<h3><%= productName %></h3>
-								
-								<p style="font-size: 13px; color: #666666; font-weight: normal; margin-bottom: 4px;">
-									規格：<%= spec != null ? spec : "無" %>
-								</p>
-								
-								<p style="font-size: 13px; color: #888888; font-weight: normal; margin-bottom: 8px;">
-									目前庫存：<strong style="color: <%= stock > 0 ? "var(--primary-color)" : "var(--price-color)" %>;"><%= stock %></strong> 件
-								</p>
-								
-								<p style="color: var(--price-color); font-weight: 700; font-size: 18px; margin-bottom: 0;">$<%= unitPrice %></p>
-							</div>
-							
-							<div class="product-action-group">
+                    //目前頁面要顯示的9筆資料
+                    String dataSql = "";
+                    if (!keyword.trim().isEmpty()) {
+                        dataSql = "SELECT p.Product_ID, p.Product_Name, p.Unit_Price, p.Specification, IFNULL(i.Quantity, 0) AS Stock_Quantity " +
+                                  "FROM Product p " +
+                                  "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID " +
+                                  "WHERE p.Product_Name LIKE ? " +
+                                  "LIMIT ?, ?";
+                        pstmtData = conn.prepareStatement(dataSql);
+                        pstmtData.setString(1, "%" + keyword.trim() + "%");
+                        pstmtData.setInt(2, offset);
+                        pstmtData.setInt(3, pageSize);
+                    } else {
+                        dataSql = "SELECT p.Product_ID, p.Product_Name, p.Unit_Price, p.Specification, IFNULL(i.Quantity, 0) AS Stock_Quantity " +
+                                  "FROM Product p " +
+                                  "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID " +
+                                  "LIMIT ?, ?";
+                        pstmtData = conn.prepareStatement(dataSql);
+                        pstmtData.setInt(1, offset);
+                        pstmtData.setInt(2, pageSize);
+                    }
+                     
+                    rsData = pstmtData.executeQuery();
+                    boolean hasResult = false;
+
+                    while (rsData.next()) {
+                        hasResult = true;
+                        String productId = rsData.getString("Product_ID");
+                        String productName = rsData.getString("Product_Name");
+                        int unitPrice = rsData.getInt("Unit_Price");
+                        String spec = rsData.getString("Specification");
+                        int stock = rsData.getInt("Stock_Quantity"); 
+                        
+                        String imgPath = "images/" + productId + ".jpg"; 
+            %>
+                        <div class="product">
+                            <div>
+                                <img src="<%= imgPath %>" onerror="this.onerror=null; this.src='images/default.jpg';" alt="<%= productName %>">
+                                <h3><%= productName %></h3>
+                                
+                                <p style="font-size: 13px; color: #666666; font-weight: normal; margin-bottom: 4px;">
+                                    規格：<%= spec != null ? spec : "無" %>
+                                </p>
+                                
+                                <p style="font-size: 13px; color: #888888; font-weight: normal; margin-bottom: 8px;">
+                                    目前庫存：<strong style="color: <%= stock > 0 ? "var(--primary-color)" : "var(--price-color)" %>;"><%= stock %></strong> 件
+                                </p>
+                                
+                                <p style="color: var(--price-color); font-weight: 700; font-size: 18px; margin-bottom: 0;">$<%= unitPrice %></p>
+                            </div>
+                            
+                            <div class="product-action-group">
                                 <a href="html/product_main.jsp?id=<%= productId %>" class="btn-action btn-view-detail">
-                                    🔍 檢視商品
+                                    檢視商品
                                 </a>
                             
                                 <% if (stock > 0) { %>
                                     <form action="html/add_to_cart.jsp" method="get" style="display:inline;">
                                         <input type="hidden" name="buy_id" value="<%= productId %>">
                                         <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="btn-action btn-add-cart">🛒 加入購物車</button>
+                                        <button type="submit" class="btn-action btn-add-cart">加入購物車</button>
                                     </form>
                                 <% } else { %>
                                     <button type="button" class="btn-action btn-add-cart disabled" disabled>庫存不足</button>
                                 <% } %>
-                            </div>                            
-						</div>
-			<%
-					}
-					
-					if (!hasResult) {
-			%>
-						<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
-							<p style="font-size: 18px; font-weight: 500;"> 找不到與『<span style="color: var(--price-color);"><%= keyword %></span>』相關的醫療器材。</p>
-							<a href="index.jsp" style="display: inline-block; margin-top: 15px; color: var(--primary-color); text-decoration: underline;">返回查看所有商品</a>
-						</div>
-			<%
-					}
-				} catch (Exception e) {
-					out.println("<p style='color:red; text-align:center;'>資料庫連線或查詢失敗: " + e.getMessage() + "</p>");
-					e.printStackTrace();
-				} finally {
-					if (rs != null) try { rs.close(); } catch (SQLException e) {}
-					if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
-					if (conn != null) try { conn.close(); } catch (SQLException e) {}
-				}
-						%>
+                            </div>                                   
+                        </div>
+            <%
+                    }
+                    
+                    if (!hasResult) {
+            %>
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                            <p style="font-size: 18px; font-weight: 500;"> 找不到與『<span style="color: var(--price-color);"><%= keyword %></span>』相關的醫療器材。</p>
+                            <a href="index.jsp" style="display: inline-block; margin-top: 15px; color: var(--primary-color); text-decoration: underline;">返回查看所有商品</a>
+                        </div>
+            <%
+                    }
+                } catch (Exception e) {
+                    out.println("<p style='color:red; text-align:center;'>資料庫連線或查詢失敗: " + e.getMessage() + "</p>");
+                    e.printStackTrace();
+                } finally {
+                    if (rsData != null) try { rsData.close(); } catch (SQLException e) {}
+                    if (pstmtData != null) try { pstmtData.close(); } catch (SQLException e) {}
+                    if (rsCount != null) try { rsCount.close(); } catch (SQLException e) {}
+                    if (pstmtCount != null) try { pstmtCount.close(); } catch (SQLException e) {}
+                    if (conn != null) try { conn.close(); } catch (SQLException e) {}
+                }
+            %>
             </section>
             
             <div class="pagination">
-                <span class="arrow" onclick="changePage(currentPage - 1)">&lt;</span>
-                <span id="page-1" class="page-num active" onclick="changePage(1)">1</span>
-                <span id="page-2" class="page-num" onclick="changePage(2)">2</span>
-                <span id="page-3" class="page-num" onclick="changePage(3)">3</span>
-                <span id="page-4" class="page-num" onclick="changePage(4)">4</span>
-                <span class="arrow" onclick="changePage(currentPage + 1)">&gt;</span>
+                <a href="index.jsp?keyword=<%= java.net.URLEncoder.encode(keyword, "UTF-8") %>&page=<%= currentPage - 1 %>" 
+                   class="<%= currentPage == 1 ? "disabled" : "" %>">&lt;</a>
+                
+                <% for (int i = 1; i <= totalPages; i++) { %>
+                    <a href="index.jsp?keyword=<%= java.net.URLEncoder.encode(keyword, "UTF-8") %>&page=<%= i %>" 
+                       class="<%= i == currentPage ? "active" : "" %>"><%= i %></a>
+                <% } %>
+                
+                <a href="index.jsp?keyword=<%= java.net.URLEncoder.encode(keyword, "UTF-8") %>&page=<%= currentPage + 1 %>" 
+                   class="<%= currentPage == totalPages ? "disabled" : "" %>">&gt;</a>
             </div>
         </main>
     </div>
@@ -656,30 +706,5 @@ footer {
         <p class="copyright">Copyright © 2025 醫療器材販賣商城 版權所有</p>
     </footer>
 
-<script>
-let currentPage = 1;
-function changePage(page) {
-    if(page < 1 || page > 4) return;
-    currentPage = page;
-
-    const adGroup = document.querySelector('.ad-group');
-    if (adGroup) {
-        adGroup.style.display = (page === 1) ? 'block' : 'none';
-    }
-
-    const pages = document.querySelectorAll('.page-num');
-    pages.forEach(p => p.classList.remove('active'));
-    
-    const activePage = document.getElementById(`page-${page}`);
-    if (activePage) activePage.classList.add('active');
-
-    renderProductsByPage(page);
-}
-
-function renderProductsByPage(page) {
-    const productContainer = document.getElementById('product-container');
-    if (!productContainer) return; 
-}
-</script>
 </body>
 </html>
