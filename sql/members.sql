@@ -9,9 +9,10 @@ CREATE TABLE members(
     role ENUM('customer','admin') NOT NULL DEFAULT 'customer'
 );
 
--- 管理員帳號 (root) 顧客帳號 (02)
+-- 管理員帳號 (root) 顧客帳號 (02、user03)
 INSERT INTO members(id,passwords,role) VALUES
 ('root','1234','admin'),
-('02','5678','customer');
+('02','5678','customer'),
+('user03','8888','customer');
 
 SELECT * FROM members;
