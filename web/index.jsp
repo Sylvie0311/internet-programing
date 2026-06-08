@@ -251,21 +251,20 @@ nav {
 
 .product-action-group {
     display: flex;
-    flex-direction: column;   /* 垂直排列 */
-    align-items: center;      /* 置中 */
-    gap: 10px;                /* 按鈕間距 */
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
     margin-top: 12px;
 }
 
 .btn-action {
     display: block;
-    width: 160px;             /* 固定寬度，兩個按鈕一致 */
+    width: 160px; /* 固定寬度一致 */
     text-align: center;
     padding: 10px 0;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
-    text-decoration: none;
     cursor: pointer;
     transition: background-color 0.25s ease;
 }
@@ -275,7 +274,6 @@ nav {
     color: var(--primary-color);
     border: 1px solid var(--primary-color);
 }
-
 .btn-view-detail:hover {
     background-color: var(--primary-color);
     color: #fff;
@@ -286,11 +284,15 @@ nav {
     color: #fff;
     border: none;
 }
-
 .btn-add-cart:hover {
     background-color: var(--primary-hover);
 }
 
+.btn-add-cart.disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}
 
 
 @keyframes cardFadeIn {
@@ -563,12 +565,16 @@ footer {
                                     🔍 檢視商品
                                 </a>
                             
-                                <form action="html/add_to_cart.jsp" method="get" style="display:inline;">
-                                    <input type="hidden" name="buy_id" value="<%= productId %>">
-                                    <input type="hidden" name="quantity" value="1">
-                                    <button type="submit" class="btn-action btn-add-cart">🛒 加入購物車</button>
-                                </form>
-                            </div>
+                                <% if (stock > 0) { %>
+                                    <form action="html/add_to_cart.jsp" method="get" style="display:inline;">
+                                        <input type="hidden" name="buy_id" value="<%= productId %>">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn-action btn-add-cart">🛒 加入購物車</button>
+                                    </form>
+                                <% } else { %>
+                                    <button type="button" class="btn-action btn-add-cart disabled" disabled>庫存不足</button>
+                                <% } %>
+                            </div>                            
 						</div>
 			<%
 					}
