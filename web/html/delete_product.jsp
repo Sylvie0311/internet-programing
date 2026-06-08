@@ -38,6 +38,18 @@
             text-align: center;
         }
 
+        .status-success {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .status-fail {
+            color: var(--price-color);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
         .btn-back {
             display: inline-block;
             margin-top: 15px;
@@ -49,6 +61,7 @@
             font-size: 14px;
             font-weight: 500;
             text-decoration: none;
+            transition: all 0.25s ease;
         }
 
         .btn-back:hover {
@@ -59,13 +72,12 @@
 </head>
 <body>
 <%
-    // 角色檢查：只有管理員才能操作
     String role = (String)session.getAttribute("role");
     if(role == null || !role.equals("admin")) {
 %>
     <div class="card">
         <h2>權限不足</h2>
-        <p>您沒有權限存取此頁面！</p>
+        <p class="status-fail">您沒有權限存取此頁面！</p>
         <a href="login.jsp" class="btn-back">請先登入管理員帳號</a>
     </div>
 <%
@@ -77,6 +89,7 @@
     if(id != null && !id.isEmpty()) {
         Connection con = null;
         PreparedStatement pstmtDetail = null;
+        PreparedStatement pstmtInventory = null;
         PreparedStatement pstmtProduct = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -84,13 +97,19 @@
                 "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
                 "root", "1234");
 
-            // 先刪除 invoice_detail 中的紀錄
+            // 先刪除 invoice_detail
             String sqlDetail = "DELETE FROM invoice_detail WHERE Product_ID=?";
             pstmtDetail = con.prepareStatement(sqlDetail);
             pstmtDetail.setString(1, id);
             pstmtDetail.executeUpdate();
 
-            // 再刪除 Product
+            // 再刪除 Inventory
+            String sqlInventory = "DELETE FROM Inventory WHERE Product_ID=?";
+            pstmtInventory = con.prepareStatement(sqlInventory);
+            pstmtInventory.setString(1, id);
+            pstmtInventory.executeUpdate();
+
+            // 最後刪除 Product
             String sqlProduct = "DELETE FROM Product WHERE Product_ID=?";
             pstmtProduct = con.prepareStatement(sqlProduct);
             pstmtProduct.setString(1, id);
@@ -98,25 +117,20 @@
 %>
     <div class="card">
         <h2>刪除商品</h2>
-        <%
-            if(rows > 0) {
-        %>
-            <p style="color: var(--price-color); font-weight: bold;">商品刪除成功！</p>
-        <%
-            } else {
-        %>
-            <p>刪除失敗，找不到商品！</p>
-        <%
-            }
-        %>
+        <% if(rows > 0) { %>
+            <p class="status-success">商品刪除成功！</p>
+        <% } else { %>
+            <p class="status-fail">刪除失敗，找不到商品！</p>
+        <% } %>
         <a href="product_list.jsp" class="btn-back">返回商品列表</a>
         <a href="../index.jsp" class="btn-back">返回首頁</a>
     </div>
 <%
         } catch(Exception e) {
-            out.println("<div class='card'><p>錯誤：" + e.getMessage() + "</p></div>");
+            out.println("<div class='card'><p class='status-fail'>錯誤：" + e.getMessage() + "</p></div>");
         } finally {
             if (pstmtDetail != null) try { pstmtDetail.close(); } catch(SQLException e){}
+            if (pstmtInventory != null) try { pstmtInventory.close(); } catch(SQLException e){}
             if (pstmtProduct != null) try { pstmtProduct.close(); } catch(SQLException e){}
             if (con != null) try { con.close(); } catch(SQLException e){}
         }
@@ -124,7 +138,7 @@
 %>
     <div class="card">
         <h2>刪除商品</h2>
-        <p>未指定要刪除的商品！</p>
+        <p class="status-fail">未指定要刪除的商品！</p>
         <a href="product_list.jsp" class="btn-back">返回商品列表</a>
         <a href="../index.jsp" class="btn-back">返回首頁</a>
     </div>

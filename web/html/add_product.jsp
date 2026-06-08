@@ -94,52 +94,63 @@
 <body>
     <%
     request.setCharacterEncoding("UTF-8");
-    
+
     String role = (String)session.getAttribute("role");
     if(role == null || !role.equals("admin")) {
         out.println("<h3>您沒有權限存取此頁面！</h3>");
         return;
     }
-    
+
     String id = request.getParameter("Product_ID");
     String name = request.getParameter("Product_Name");
     String spec = request.getParameter("Specification");
     String price = request.getParameter("Unit_Price");
-    
-    if (id != null && name != null && spec != null && price != null &&
-        !id.isEmpty() && !name.isEmpty() && !spec.isEmpty() && !price.isEmpty()) {
+    String stock = request.getParameter("Stock_Quantity"); // 新增庫存數量
+
+    if (id != null && name != null && spec != null && price != null && stock != null &&
+        !id.isEmpty() && !name.isEmpty() && !spec.isEmpty() && !price.isEmpty() && !stock.isEmpty()) {
         Connection con = null;
-        PreparedStatement pstmt = null;
+        PreparedStatement pstmtProduct = null;
+        PreparedStatement pstmtInventory = null;
         try {
-            // 驗證單價是否為數字
             int unitPrice = Integer.parseInt(price);
-    
+            int stockQty = Integer.parseInt(stock);
+
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
                 "root", "1234");
-    
-            String sql = "INSERT INTO Product (Product_ID, Product_Name, Specification, Unit_Price) VALUES (?, ?, ?, ?)";
-            pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, id);
-            pstmt.setString(2, name);
-            pstmt.setString(3, spec);
-            pstmt.setInt(4, unitPrice);
-    
-            int rows = pstmt.executeUpdate();
-    
-            if (rows > 0) {
-                out.println("商品新增成功！<br>");
+
+            // 新增商品
+            String sqlProduct = "INSERT INTO Product (Product_ID, Product_Name, Specification, Unit_Price) VALUES (?, ?, ?, ?)";
+            pstmtProduct = con.prepareStatement(sqlProduct);
+            pstmtProduct.setString(1, id);
+            pstmtProduct.setString(2, name);
+            pstmtProduct.setString(3, spec);
+            pstmtProduct.setInt(4, unitPrice);
+
+            int rowsProduct = pstmtProduct.executeUpdate();
+
+            if (rowsProduct > 0) {
+                // 新增庫存
+                String sqlInventory = "INSERT INTO Inventory (Product_ID, Quantity) VALUES (?, ?)";
+                pstmtInventory = con.prepareStatement(sqlInventory);
+                pstmtInventory.setString(1, id);
+                pstmtInventory.setInt(2, stockQty);
+                pstmtInventory.executeUpdate();
+
+                out.println("商品與庫存新增成功！<br>");
                 out.println("<a href='product_list.jsp'>查看商品列表</a>");
             } else {
-                out.println("新增失敗！");
+                out.println("新增商品失敗！");
             }
         } catch(NumberFormatException nfe) {
-            out.println("錯誤：單價必須為數字！");
+            out.println("錯誤：單價與庫存必須為數字！");
         } catch(Exception e) {
             out.println("錯誤：" + e.getMessage());
         } finally {
-            if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+            if (pstmtProduct != null) try { pstmtProduct.close(); } catch(SQLException e){}
+            if (pstmtInventory != null) try { pstmtInventory.close(); } catch(SQLException e){}
             if (con != null) try { con.close(); } catch(SQLException e){}
         }
     } else {
@@ -163,6 +174,10 @@
                 <label>單價:</label>
                 <input type="text" name="Unit_Price">
             </div>
+            <div class="form-row">
+                <label>庫存數量:</label>
+                <input type="text" name="Stock_Quantity">
+            </div>
             <input type="submit" value="新增商品" class="btn-submit">
         </form>
         <a href="product_list.jsp" class="btn-back">返回商品列表</a>
@@ -170,5 +185,5 @@
     <%
     }
     %>
-    </body>
-    </html>
+</body>
+</html>

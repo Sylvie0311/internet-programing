@@ -104,47 +104,61 @@ if(role == null || !role.equals("admin")) {
 
 String id = request.getParameter("Product_ID");
 
-// 如果有送出修改表單
 if(request.getParameter("Product_Name") != null) {
+    // 更新商品
     String name = request.getParameter("Product_Name");
     String spec = request.getParameter("Specification");
     String price = request.getParameter("Unit_Price");
+    String stock = request.getParameter("Stock_Quantity");
 
     Connection con = null;
-    PreparedStatement pstmt = null;
+    PreparedStatement pstmtProduct = null;
+    PreparedStatement pstmtInventory = null;
     try {
-        int unitPrice = Integer.parseInt(price); // 驗證單價是否為數字
+        int unitPrice = Integer.parseInt(price);
+        int stockQty = Integer.parseInt(stock);
 
         Class.forName("com.mysql.cj.jdbc.Driver");
         con = DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
             "root", "1234");
 
-        String sql = "UPDATE Product SET Product_Name=?, Specification=?, Unit_Price=? WHERE Product_ID=?";
-        pstmt = con.prepareStatement(sql);
-        pstmt.setString(1, name);
-        pstmt.setString(2, spec);
-        pstmt.setInt(3, unitPrice);
-        pstmt.setString(4, id);
+        // 更新商品資料
+        String sqlProduct = "UPDATE Product SET Product_Name=?, Specification=?, Unit_Price=? WHERE Product_ID=?";
+        pstmtProduct = con.prepareStatement(sqlProduct);
+        pstmtProduct.setString(1, name);
+        pstmtProduct.setString(2, spec);
+        pstmtProduct.setInt(3, unitPrice);
+        pstmtProduct.setString(4, id);
+        int rowsProduct = pstmtProduct.executeUpdate();
 
-        int rows = pstmt.executeUpdate();
+        // 更新庫存
+        String sqlInventory = "UPDATE Inventory SET Quantity=? WHERE Product_ID=?";
+        pstmtInventory = con.prepareStatement(sqlInventory);
+        pstmtInventory.setInt(1, stockQty);
+        pstmtInventory.setString(2, id);
+        pstmtInventory.executeUpdate();
 
-        if(rows > 0) {
-            out.println("商品修改成功！<br>");
-            out.println("<a href='product_list.jsp'>回商品列表</a>");
+        if(rowsProduct > 0) {
+%>
+            <h2>修改成功</h2>
+            <div class="card">
+                <p>商品與庫存修改成功！</p>
+                <a href="product_list.jsp" class="btn-back">回商品列表</a>
+            </div>
+<%
         } else {
             out.println("修改失敗！");
         }
-    } catch(NumberFormatException nfe) {
-        out.println("錯誤：單價必須為數字！");
     } catch(Exception e) {
         out.println("錯誤：" + e.getMessage());
     } finally {
-        if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+        if (pstmtProduct != null) try { pstmtProduct.close(); } catch(SQLException e){}
+        if (pstmtInventory != null) try { pstmtInventory.close(); } catch(SQLException e){}
         if (con != null) try { con.close(); } catch(SQLException e){}
     }
 } else {
-    // 第一次進來，顯示原始資料
+    // 顯示原始資料
     Connection con = null;
     PreparedStatement pstmt = null;
     ResultSet rs = null;
@@ -154,36 +168,38 @@ if(request.getParameter("Product_Name") != null) {
             "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
             "root", "1234");
 
-        String sql = "SELECT * FROM Product WHERE Product_ID=?";
+        String sql = "SELECT p.Product_ID, p.Product_Name, p.Specification, p.Unit_Price, IFNULL(i.Quantity,0) AS Stock_Quantity " +
+                     "FROM Product p LEFT JOIN Inventory i ON p.Product_ID=i.Product_ID WHERE p.Product_ID=?";
         pstmt = con.prepareStatement(sql);
         pstmt.setString(1, id);
         rs = pstmt.executeQuery();
 
         if(rs.next()) {
 %>
-<h2>修改商品</h2>
-<div class="card">
-    <form action="update_product.jsp" method="post">
-        <div class="form-row">
-            <label>商品編號:</label>
-            <input type="text" name="Product_ID" value="<%=rs.getString("Product_ID")%>" readonly>
+        <h2>修改商品</h2>
+        <div class="card">
+            <form action="update_product.jsp" method="post">
+                <input type="hidden" name="Product_ID" value="<%=rs.getString("Product_ID")%>">
+                <div class="form-row">
+                    <label>商品名稱:</label>
+                    <input type="text" name="Product_Name" value="<%=rs.getString("Product_Name")%>">
+                </div>
+                <div class="form-row">
+                    <label>規格:</label>
+                    <input type="text" name="Specification" value="<%=rs.getString("Specification")%>">
+                </div>
+                <div class="form-row">
+                    <label>單價:</label>
+                    <input type="text" name="Unit_Price" value="<%=rs.getInt("Unit_Price")%>">
+                </div>
+                <div class="form-row">
+                    <label>庫存數量:</label>
+                    <input type="text" name="Stock_Quantity" value="<%=rs.getInt("Stock_Quantity")%>">
+                </div>
+                <input type="submit" value="修改商品" class="btn-submit">
+            </form>
+            <a href="product_list.jsp" class="btn-back">返回商品列表</a>
         </div>
-        <div class="form-row">
-            <label>商品名稱:</label>
-            <input type="text" name="Product_Name" value="<%=rs.getString("Product_Name")%>">
-        </div>
-        <div class="form-row">
-            <label>規格:</label>
-            <input type="text" name="Specification" value="<%=rs.getString("Specification")%>">
-        </div>
-        <div class="form-row">
-            <label>單價:</label>
-            <input type="text" name="Unit_Price" value="<%=rs.getInt("Unit_Price")%>">
-        </div>
-        <input type="submit" value="更新商品" class="btn-submit">
-    </form>
-    <a href="product_list.jsp" class="btn-back">返回商品列表</a>
-</div>
 <%
         } else {
             out.println("找不到商品！");
