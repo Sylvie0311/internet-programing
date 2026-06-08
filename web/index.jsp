@@ -250,49 +250,47 @@ nav {
 }
 
 .product-action-group {
-    margin-top: 15px; 
     display: flex;
-    flex-direction: column;
-    gap: 10px;        
+    flex-direction: column;   /* 垂直排列 */
+    align-items: center;      /* 置中 */
+    gap: 10px;                /* 按鈕間距 */
+    margin-top: 12px;
 }
 
+.btn-action {
+    display: block;
+    width: 160px;             /* 固定寬度，兩個按鈕一致 */
+    text-align: center;
+    padding: 10px 0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+}
 
 .btn-view-detail {
-    display: block;
-    text-align: center;
-    background-color: var(--morandi-gray-btn);
+    background-color: #E6F4F3;
     color: var(--primary-color);
-    padding: 9px 0;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid #E0EFFE;
-    transition: all 0.25s ease;
+    border: 1px solid var(--primary-color);
 }
 
 .btn-view-detail:hover {
-    background-color: var(--secondary-bg);
-    border-color: var(--primary-color);
-    letter-spacing: 0.5px; 
+    background-color: var(--primary-color);
+    color: #fff;
 }
 
 .btn-add-cart {
-    display: block;
-    text-align: center;
     background-color: var(--primary-color);
-    color: #FFFFFF;
-    padding: 9px 0;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.25s ease;
-    box-shadow: 0 2px 6px rgba(0, 164, 158, 0.15);
+    color: #fff;
+    border: none;
 }
 
 .btn-add-cart:hover {
     background-color: var(--primary-hover);
-    box-shadow: 0 4px 12px rgba(0, 164, 158, 0.3);
 }
+
 
 
 @keyframes cardFadeIn {
@@ -561,14 +559,16 @@ footer {
 							</div>
 							
 							<div class="product-action-group">
-								<a href="html/product_main.jsp?id=<%= productId %>" class="btn-view-detail">
-									🔍 檢視商品
-								</a>
-								
-								<a href="html/add_to_cart.jsp?buy_id=<%= productId %>" class="btn-add-cart">
-									🛒 加入購物車
-								</a>
-							</div>
+                                <a href="html/product_main.jsp?id=<%= productId %>" class="btn-action btn-view-detail">
+                                    🔍 檢視商品
+                                </a>
+                            
+                                <form action="html/add_to_cart.jsp" method="get" style="display:inline;">
+                                    <input type="hidden" name="buy_id" value="<%= productId %>">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn-action btn-add-cart">🛒 加入購物車</button>
+                                </form>
+                            </div>
 						</div>
 			<%
 					}

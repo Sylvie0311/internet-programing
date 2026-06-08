@@ -1,16 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%
-    // 資料庫連線資訊
     String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234";
 
-    // 取得操作參數
     String action = request.getParameter("action");
     String pIdParam = request.getParameter("p_id");
 
-    // 數量加減、刪除
     if (action != null && pIdParam != null) {
         Connection connAction = null;
         PreparedStatement pstmtAction = null;
@@ -18,28 +15,25 @@
             Class.forName("com.mysql.cj.jdbc.Driver");
             connAction = DriverManager.getConnection(url, user, password);
 
-            if (action.equals("add")) {
+            if ("add".equals(action)) {
                 String sql = "UPDATE shopping_cart SET Quantity = Quantity + 1 WHERE Product_ID=?";
                 pstmtAction = connAction.prepareStatement(sql);
                 pstmtAction.setString(1, pIdParam);
                 pstmtAction.executeUpdate();
-            } else if (action.equals("minus")) {
+            } else if ("minus".equals(action)) {
                 String sql = "UPDATE shopping_cart SET Quantity = Quantity - 1 WHERE Product_ID=? AND Quantity > 1";
                 pstmtAction = connAction.prepareStatement(sql);
                 pstmtAction.setString(1, pIdParam);
                 pstmtAction.executeUpdate();
-            } else if (action.equals("delete")) {
+            } else if ("delete".equals(action)) {
                 String sql = "DELETE FROM shopping_cart WHERE Product_ID=?";
                 pstmtAction = connAction.prepareStatement(sql);
                 pstmtAction.setString(1, pIdParam);
                 pstmtAction.executeUpdate();
             }
 
-            // 重新導向回自己，刷新購物車數據
             response.sendRedirect("cart.jsp");
             return;
-        } catch (SQLException sExec) {
-            out.print("<script>alert('購物車操作失敗：" + sExec.toString().replace("'", "\\'") + "');</script>");
         } finally {
             if (pstmtAction != null) try { pstmtAction.close(); } catch (SQLException e) {}
             if (connAction != null) try { connAction.close(); } catch (SQLException e) {}

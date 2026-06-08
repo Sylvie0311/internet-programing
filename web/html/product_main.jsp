@@ -318,51 +318,69 @@ hr {
 </head>
 <body>
     <header>
-        <a href="../index.jsp">
-            <img src="../images/arrow.png" alt="返回首頁">
-        </a>
-        <a href="cart.jsp" class="cart">
-            <img src="../images/shopping cart.png" alt="購物車">
-        </a>
+        <a href="../index.jsp"><img src="../images/arrow.png" alt="返回首頁"></a>
+        <a href="cart.jsp"><img src="../images/shopping cart.png" alt="購物車"></a>
     </header>
     
     <div class="product-container">
         <div class="product_container1">
             <div class="product-picture">
-                <img src="../images/<%= productId %>.jpg" 
-                     onerror="this.onerror=null; this.src='../images/default.jpg';" 
-                     alt="商品圖片" id="p-img">
+                <img src="../images/<%= productId %>.jpg" onerror="this.onerror=null; this.src='../images/default.jpg';" alt="商品圖片">
             </div>
         </div>
         
         <div class="product_container2">
-            <div class="product-name">
-                <p id="p-name"><%= dbProductName %></p>
-            </div>
-            <div class="introduce">
-                <p id="p-intro">
-                    <strong>規格：<%= dbSpecification %></strong><br><br>
-                    <%= dbProductIntro %>
-                </p>
-            </div>
-            <div class="price">
-                <p id="p-price">$<%= dbUnitPrice %></p>
-            </div>
+            <div class="product-name"><p><%= dbProductName %></p></div>
+            <div class="introduce"><p><strong>規格：<%= dbSpecification %></strong><br><br><%= dbProductIntro %></p></div>
+            <div class="price"><p>$<%= dbUnitPrice %></p></div>
             <div class="amount">
                 <p>數量:</p>
                 <div class="quantity-group">
                     <button type="button" id="btn-minus">−</button>
-                    <input type="number" id="quantity-input" min="1" max="99" value="1" readonly>
+                    <input type="number" id="quantity-input" name="quantity" min="1" max="99" value="1">
                     <button type="button" id="btn-add">+</button>
                 </div>
             </div>
-
             <div class="buy-button">
-                <a href="add_to_cart.jsp?buy_id=<%= productId %>" id="add-to-cart">加入購物車</a>
+                <form action="add_to_cart.jsp" method="get">
+                    <input type="hidden" name="buy_id" value="<%= productId %>">
+                    <input type="hidden" id="buy-qty" name="quantity" value="1">
+                    <button type="submit">🛒 加入購物車</button>
+                </form>
             </div>
         </div>
     </div>
 
+    <script>
+        const minusBtn = document.getElementById("btn-minus");
+        const addBtn = document.getElementById("btn-add");
+        const qtyInput = document.getElementById("quantity-input");
+        const buyQty = document.getElementById("buy-qty");
+
+        minusBtn.addEventListener("click", () => {
+            let current = parseInt(qtyInput.value);
+            if(current > 1) {
+                qtyInput.value = current - 1;
+                buyQty.value = qtyInput.value;
+            }
+        });
+
+        addBtn.addEventListener("click", () => {
+            let current = parseInt(qtyInput.value);
+            if(current < 99) {
+                qtyInput.value = current + 1;
+                buyQty.value = qtyInput.value;
+            }
+        });
+
+        qtyInput.addEventListener("input", () => {
+            let current = parseInt(qtyInput.value);
+            if(current < 1) qtyInput.value = 1;
+            if(current > 99) qtyInput.value = 99;
+            buyQty.value = qtyInput.value;
+        });
+    </script>
+    
     <div class="comment">
         <h1>顧客評論與評分 💭</h1>
         <hr>
