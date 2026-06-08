@@ -50,52 +50,45 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-
 :root {
-    --primary-color: #00A49E;       
+    --primary-color: #00A49E;        
     --primary-hover: #008782;
-    --morandi-pink: #F4C2C2;        
+    --morandi-pink: #F4C2C2;          
     --morandi-pink-hover: #E0A8A8;
     --text-color: #333333;
     --light-bg: #FAFBFB;
     --border-color: #E8EBEB;
     --price-color: #FF5A5F;
 }
-
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
-
 body {
     font-family: 'Noto Sans TC', sans-serif;
     background-color: #FFFFFF;
     color: var(--text-color);
     line-height: 1.6;
 }
-
 header {
     background-color: #00A49E; 
     width: 100%;               
     padding: 15px 40px;          
     display: flex;             
-    align-items: center;      
+    align-items: center;       
     justify-content: space-between;
     border-bottom: 1px solid var(--border-color);
 }
-
 header img {
     width: 32px;
     height: 32px;
     display: block;
     transition: transform 0.2s;
 }
-
 header img:hover {
     transform: scale(1.1);
 }
-
 .product-container {
     display: flex;
     max-width: 1200px;
@@ -104,7 +97,6 @@ header img:hover {
     gap: 50px;
     align-items: flex-start;
 }
-
 .product_container1 {
     width: 45%;
     background-color: #FBFDFD;
@@ -112,13 +104,11 @@ header img:hover {
     border-radius: 16px;
     padding: 30px;
 }
-
 .product_container2 {
     width: 55%;
     display: flex;
     flex-direction: column;
 }
-
 .product-picture img {
     width: 100%;
     height: auto;
@@ -127,14 +117,12 @@ header img:hover {
     display: block;
     margin: 0 auto;
 }
-
 .product-name p {
     font-size: 32px;
     color: #222222;
     margin-bottom: 15px;
     font-weight: 700;
 }
-
 .introduce {
     font-size: 16px;
     color: #666666;
@@ -144,27 +132,23 @@ header img:hover {
     border-radius: 8px;
     border-left: 4px solid var(--primary-color);
 }
-
 .price p {
     font-size: 36px;
     margin-bottom: 25px;
     color: var(--price-color);
     font-weight: 700;
 }
-
 .amount {
     display: flex;
     align-items: center;
     gap: 15px; 
     margin-bottom: 30px;
 }
-
 .amount p {
     font-size: 16px;
     font-weight: 500;
     color: #444444;
 }
-
 .quantity-group { 
     display: flex;
     border: 1px solid #D1D5D5; 
@@ -172,7 +156,6 @@ header img:hover {
     overflow: hidden;
     background: #FFFFFF;
 }
-
 .quantity-group button {
     width: 40px;
     height: 40px;
@@ -186,11 +169,9 @@ header img:hover {
     justify-content: center;
     transition: background 0.2s;
 }
-
 .quantity-group button:hover {
     background-color: #F0F2F2;
 }
-
 .quantity-group input {
     width: 60px;
     height: 40px;
@@ -202,21 +183,18 @@ header img:hover {
     outline: none;
     font-weight: 500;
 }
-
 .quantity-group input::-webkit-outer-spin-button,
 .quantity-group input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
-
 .buy-button {
     margin-top: 10px;
 }
-
 .buy-button button {
-    font-size: 16px;         
+    font-size: 16px;          
     padding: 14px 0;
-    width: 100%;      
+    width: 100%;    
     max-width: 320px;
     cursor: pointer;
     background-color: var(--primary-color); 
@@ -227,31 +205,26 @@ header img:hover {
     box-shadow: 0 4px 12px rgba(0, 164, 158, 0.15);
     transition: all 0.25s ease;
 }
-
 .buy-button button:hover {
     background-color: var(--primary-hover);
     box-shadow: 0 6px 18px rgba(0, 164, 158, 0.25);
 }
-
 .comment {
     max-width: 1200px;
     margin: 40px auto 80px auto;
     padding: 0 20px;
 }
-
 .comment h1 {
     font-size: 22px;
     margin-bottom: 15px;
     font-weight: 700;
     color: #222222;
 }
-
 hr {
     border: 0;
     border-top: 1px solid var(--border-color);
     margin-bottom: 25px;
 }
-
 .comment-block {
     border: 1px solid var(--border-color);
     margin-bottom: 25px;
@@ -259,7 +232,6 @@ hr {
     padding: 20px;
     background-color: #FCFDFD;
 }
-
 .comment-bottom {
     margin-top: 30px;
     padding: 24px;
@@ -267,11 +239,9 @@ hr {
     border-radius: 12px;
     background-color: #FFFDFD; 
 }
-
 .t {
     text-align: right;
 }
-
 .add-comment-btn {
     background-color: var(--morandi-pink); 
     border: none;
@@ -283,14 +253,11 @@ hr {
     cursor: pointer;
     transition: all 0.25s;
 }
-
 .add-comment-btn:hover {
     box-shadow: 0 4px 12px rgba(244, 194, 194, 0.4);
     color: white;
     background-color: var(--morandi-pink-hover);
 }
-
-
 @media (max-width: 767px) {
     header {
         padding: 12px 20px;
@@ -350,13 +317,11 @@ hr {
             </div>
         </div>
     </div>
-
     <script>
         const minusBtn = document.getElementById("btn-minus");
         const addBtn = document.getElementById("btn-add");
         const qtyInput = document.getElementById("quantity-input");
         const buyQty = document.getElementById("buy-qty");
-
         minusBtn.addEventListener("click", () => {
             let current = parseInt(qtyInput.value);
             if(current > 1) {
@@ -364,7 +329,6 @@ hr {
                 buyQty.value = qtyInput.value;
             }
         });
-
         addBtn.addEventListener("click", () => {
             let current = parseInt(qtyInput.value);
             if(current < 99) {
@@ -372,7 +336,6 @@ hr {
                 buyQty.value = qtyInput.value;
             }
         });
-
         qtyInput.addEventListener("input", () => {
             let current = parseInt(qtyInput.value);
             if(current < 1) qtyInput.value = 1;
@@ -391,13 +354,13 @@ hr {
         </div>
         <div class="comment-bottom">
             <form action="board.jsp" method="get">
+                <input type="hidden" name="id" value="<%= productId %>">
                 <div class="t">
                     <button type="submit" class="add-comment-btn">去發表評論</button>
                 </div>
             </form>
         </div>
     </div>
-    
     <script src="../js/web1.js"></script>
     <script src="../js/sign.js"></script>
 </body>
