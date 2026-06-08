@@ -29,7 +29,7 @@
             dbProductName = rs.getString("Product_Name");
             dbSpecification = rs.getString("Specification");
             dbUnitPrice = rs.getInt("Unit_Price");
-            dbProductIntro = "尚無商品介紹"; // 預設文字
+            dbProductIntro = "尚無商品介紹"; 
         }
         
     } catch (Exception e) {
@@ -41,7 +41,7 @@
     }
 %>
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
