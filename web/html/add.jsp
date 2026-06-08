@@ -14,6 +14,8 @@ try {
     String new_content = request.getParameter("content");
     java.sql.Date new_date = new java.sql.Date(System.currentTimeMillis());
 
+    String productId = request.getParameter("productId");
+
     Class.forName("com.mysql.cj.jdbc.Driver");
     Connection con = null;
     PreparedStatement pstmt = null;
@@ -36,7 +38,11 @@ try {
             int rows = pstmt.executeUpdate();
 
             if (rows > 0) {
-                response.sendRedirect("product_main.html");
+                if (productId != null && !productId.trim().isEmpty() && !productId.equals("null")) {
+                    response.sendRedirect("product_main.jsp?id=" + productId);
+                } else {
+                    response.sendRedirect("board.jsp");
+                }
             } else {
                 out.println("新增失敗！");
             }
