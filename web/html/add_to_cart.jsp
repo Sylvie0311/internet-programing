@@ -11,13 +11,14 @@
 
     if (buyId != null && !buyId.trim().isEmpty() && qtyParam != null && !qtyParam.trim().isEmpty()) {
         Connection conn = null;
-        PreparedStatement pstmt = null;
-        PreparedStatement pstmtAction = null;
+        PreparedStatement pstmtCheck = null;  
+        PreparedStatement pstmtAction = null; 
         ResultSet rsCheck = null;
 
         try {
-            int quantity = Integer.parseInt(qtyParam.trim());
-            if(quantity < 1) incomingQuantity = 1;   // 最少 1
+            // 將這裡的變數名稱統一改為 incomingQuantity
+            int incomingQuantity = Integer.parseInt(qtyParam.trim());
+            if(incomingQuantity < 1) incomingQuantity = 1;   // 單次最少 1
         
 
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -58,7 +59,9 @@
             out.print("資料庫寫入或更新失敗：" + sExec.toString());
         }
         finally {
-            if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+            if (rsCheck != null) try { rsCheck.close(); } catch(SQLException e){}
+            if (pstmtCheck != null) try { pstmtCheck.close(); } catch(SQLException e){}
+            if (pstmtAction != null) try { pstmtAction.close(); } catch(SQLException e){}
             if (conn != null) try { conn.close(); } catch(SQLException e){}
         }
     }
