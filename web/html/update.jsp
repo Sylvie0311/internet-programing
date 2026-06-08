@@ -3,6 +3,7 @@
 <%@include file="config.jsp"%>
 <html>
 <head>
+    <title>會員資料更新</title>
 <style>
 <style>
 :root {
@@ -121,45 +122,60 @@ input[type="submit"]:hover {
 <%
 Connection con = (Connection)request.getAttribute("con");
 String oldId = (String)session.getAttribute("id");  // 舊帳號
+
 if (oldId != null) {
     String newId = request.getParameter("id");      // 新帳號
     String newPwd = request.getParameter("passwords"); // 新密碼
 
     if (newId != null && newPwd != null && !newId.isEmpty() && !newPwd.isEmpty()) {
-        String sql = "UPDATE members SET id='" + newId + "', passwords='" + newPwd + "' WHERE id='" + oldId + "'";
+        PreparedStatement pstmt = null;
         try {
-            int rows = con.createStatement().executeUpdate(sql);
-            con.close();
-            if (rows > 0) {			
-                // 更新後把session裡的id改成新帳號
-                session.setAttribute("id", newId);
-%>				
-                <main class="container">
-                    <section class="card">
-                        <div class="status-msg status-success">🎉 會員資料更新成功！</div>
-                        <p>您的資料已同步至系統，請<a href='../index.jsp'>點擊此處</a>返回首頁</p>
-                    </section>
-                </main>
-<%
+            // 輸入驗證：限制長度，避免惡意輸入
+            if(newId.length() > 50 || newPwd.length() > 50){
+                out.print("更新失敗! 輸入過長。<a href='user.jsp'>按此</a>回會員頁面");
             } else {
+                String sql = "UPDATE members SET id=?, passwords=? WHERE id=?";
+                pstmt = con.prepareStatement(sql);
+                pstmt.setString(1, newId);
+                pstmt.setString(2, newPwd);
+                pstmt.setString(3, oldId);
+
+                int rows = pstmt.executeUpdate();
+
+                if (rows > 0) {         
+                    // 更新後把 session 裡的 id 改成新帳號
+                    session.setAttribute("id", newId);
+%>              
+                    <main class="container">
+                        <section class="card">
+                            <div class="status-msg status-success">🎉 會員資料更新成功！</div>
+                            <p>您的資料已同步至系統，請<a href='../index.jsp'>點擊此處</a>返回首頁</p>
+                        </section>
+                    </main>
+<%
+                } else {
 %>
-                <main class="container">
-                    <section class="card">
-                        <div class="status-msg status-fail">❌ 更新失敗，該帳號可能不存在。</div>
-                        <p>請<a href='user.jsp'>點擊此處</a>重新回到會員中心</p>
-                    </section>
-                </main>
-<%				
+                    <main class="container">
+                        <section class="card">
+                            <div class="status-msg status-fail">❌ 更新失敗，該帳號可能不存在。</div>
+                            <p>請<a href='user.jsp'>點擊此處</a>重新回到會員中心</p>
+                        </section>
+                    </main>
+<%              
+                }
             }
         } catch(SQLException e) {
             out.print("SQL錯誤: " + e.getMessage());
+        } finally {
+            if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+            if (con != null) try { con.close(); } catch(SQLException e){}
         }
     } else {
-        con.close();
+        if (con != null) con.close();
         out.print("更新失敗! 請確實填寫完整。<a href='user.jsp'>按此</a>回會員頁面");
     }
 } else {
-    con.close();
+    if (con != null) con.close();
 %>
 <main class="container">
     <section class="card">

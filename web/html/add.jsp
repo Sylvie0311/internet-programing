@@ -14,36 +14,41 @@ try {
     String new_content = request.getParameter("content");
     java.sql.Date new_date = new java.sql.Date(System.currentTimeMillis());
 
-   Class.forName("com.mysql.cj.jdbc.Driver");
+    Class.forName("com.mysql.cj.jdbc.Driver");
+    Connection con = null;
+    PreparedStatement pstmt = null;
+
     try {
-       String url="jdbc:mysql://localhost:3306/board?serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8";
-        String sql="";
-        Connection con=DriverManager.getConnection(url,"root","1234");
-        if(con.isClosed())
-           out.println("連線建立失敗");
-        else { 
-           sql="use board";
-           con.createStatement().execute(sql);
+        String url="jdbc:mysql://localhost:3306/board?serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8";
+        con = DriverManager.getConnection(url,"root","1234");
 
-           sql="INSERT INTO guestbook (`GBName`, `Mail`, `Subject`, `Content`, `Putdate`) ";
-           sql+="VALUES ('" + new_name + "', ";
-           sql+="'"+new_mail+"', ";
-           sql+="'"+new_subject+"', ";
-           sql+="'"+new_content+"', ";   
-           sql+="'"+new_date+"')";      
+        if(con.isClosed()) {
+            out.println("連線建立失敗");
+        } else { 
+            String sql = "INSERT INTO guestbook (GBName, Mail, Subject, Content, Putdate) VALUES (?, ?, ?, ?, ?)";
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, new_name);
+            pstmt.setString(2, new_mail);
+            pstmt.setString(3, new_subject);
+            pstmt.setString(4, new_content);
+            pstmt.setDate(5, new_date);
 
-           con.createStatement().execute(sql);
+            int rows = pstmt.executeUpdate();
 
-           con.close();
-           response.sendRedirect("product_main.html");
-       }
+            if (rows > 0) {
+                response.sendRedirect("product_main.html");
+            } else {
+                out.println("新增失敗！");
+            }
+        }
+    } catch (SQLException sExec) {
+        out.println("SQL錯誤：" + sExec.toString());
+    } finally {
+        if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+        if (con != null) try { con.close(); } catch(SQLException e){}
     }
-    catch (SQLException sExec) {
-           out.println("SQL錯誤"+sExec.toString());
-    }
-}
-catch (ClassNotFoundException err) {
-   out.println("class錯誤"+err.toString());
+} catch (ClassNotFoundException err) {
+   out.println("class錯誤：" + err.toString());
 }
 %>
 </body>

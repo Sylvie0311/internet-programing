@@ -79,83 +79,90 @@
     }
     </style>
 </head>
-<body>
 
+<body>
 <%
+Connection con = null;
+PreparedStatement pstmtCount = null;
+PreparedStatement pstmtList = null;
+ResultSet rsCount = null;
+ResultSet rsList = null;
+
 try {
     Class.forName("com.mysql.cj.jdbc.Driver");
-    try {
-        String url="jdbc:mysql://localhost:3306/medical_system_my_db?serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false";
-        String user="root";
-        String password="board";
-        Connection con=DriverManager.getConnection(url, user, password);
-        
-        if(con != null && !con.isClosed()) {
-       
-            con.createStatement().execute("USE `medical_system_my_db` ");
+    String url="jdbc:mysql://localhost:3306/board?serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false";
+    String user="root";
+    String password="1234"; // 請確認密碼正確
+    con=DriverManager.getConnection(url, user, password);
 
-            // 計算總筆數
-            String sqlCount = "SELECT * FROM `guestbook` ";
-            ResultSet rsCount = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY).executeQuery(sqlCount);
-            rsCount.last();
-            int total_content = rsCount.getRow();
-            int page_num = (int)Math.ceil((double)total_content/5.0);
-
-            // 取得目前頁碼 
-            String page_string = request.getParameter("page");
-            if (page_string == null || page_string.equals("0")) {
-                page_string = "1";
-            }
-            int current_page = Integer.valueOf(page_string);
-
-            out.println("共 " + total_content + " 筆留言<p>");
-            out.println("請選擇頁數：");
-            
-            // 顯示分頁的連結
-            out.println("<a href='view.jsp?page=1'>第一頁</a> ");
-            if(current_page > 1) 
-                out.println("<a href='view.jsp?page=" + (current_page-1) + "'>上一頁</a> ");
-
-            for(int i=1; i<=page_num; i++) {
-                if (i == current_page)
-                    out.print("[" + i + "]&nbsp;");
-                else
-                    out.print("<a href='view.jsp?page=" + i + "'>" + i + "</a>&nbsp;");
-            }
-
-            if(current_page < page_num)
-                out.println("<a href='view.jsp?page=" + (current_page+1) + "'>下一頁</a> ");
-            out.println("<a href='view.jsp?page=" + page_num + "'>最後頁</a><p><hr>");
-
-            // 抓取當前頁面訊息
-            int start_record = (current_page - 1) * 5;
-            String sqlList = "SELECT * FROM `guestbook` ORDER BY `GBNO` DESC LIMIT " + start_record + ", 5";
-            ResultSet rsList = con.createStatement().executeQuery(sqlList);
-            
-            while(rsList.next()) {
-                String content = rsList.getString(5);
-                if (content != null) {
-                    content = content.replace("\n", "<br>");
-                }
-                
-                out.println("<div class='modern-review-row'>");
-                
-                out.println("<span class='review-tag'>留言主題：</span><strong>" + rsList.getString("Subject") + "</strong><br>");
-                out.println("<span class='review-tag'>訪客姓名：</span>" + rsList.getString("GBName") + " <span class='review-email'>(" + rsList.getString("Mail") + ")</span><br>");
-                
-                out.println("<div class='review-text-content'>" + content + "</div>");
-                
-                out.println("<span class='review-time'>留言時間：" + rsList.getString(6) + "</span>");
-                
-                out.println("</div>"); // 結束箱子
-            }
-            con.close();
+    if(con != null && !con.isClosed()) {
+        // 計算總筆數
+        String sqlCount = "SELECT COUNT(*) FROM guestbook";
+        pstmtCount = con.prepareStatement(sqlCount);
+        rsCount = pstmtCount.executeQuery();
+        int total_content = 0;
+        if(rsCount.next()) {
+            total_content = rsCount.getInt(1);
         }
-    } catch (SQLException sExec) {
-        out.println("SQL錯誤: " + sExec.toString());
+        int page_num = (int)Math.ceil((double)total_content/5.0);
+
+        // 取得目前頁碼 
+        String page_string = request.getParameter("page");
+        if (page_string == null || page_string.equals("0")) {
+            page_string = "1";
+        }
+        int current_page = Integer.parseInt(page_string);
+
+        out.println("共 " + total_content + " 筆留言<p>");
+        out.println("請選擇頁數：");
+
+        // 顯示分頁的連結
+        out.println("<a href='view.jsp?page=1'>第一頁</a> ");
+        if(current_page > 1) 
+            out.println("<a href='view.jsp?page=" + (current_page-1) + "'>上一頁</a> ");
+
+        for(int i=1; i<=page_num; i++) {
+            if (i == current_page)
+                out.print("[" + i + "]&nbsp;");
+            else
+                out.print("<a href='view.jsp?page=" + i + "'>" + i + "</a>&nbsp;");
+        }
+
+        if(current_page < page_num)
+            out.println("<a href='view.jsp?page=" + (current_page+1) + "'>下一頁</a> ");
+        out.println("<a href='view.jsp?page=" + page_num + "'>最後頁</a><p><hr>");
+
+        // 抓取當前頁面訊息
+        int start_record = (current_page - 1) * 5;
+        String sqlList = "SELECT * FROM guestbook ORDER BY GBNO DESC LIMIT ?, ?";
+        pstmtList = con.prepareStatement(sqlList);
+        pstmtList.setInt(1, start_record);
+        pstmtList.setInt(2, 5);
+        rsList = pstmtList.executeQuery();
+
+        while(rsList.next()) {
+            String content = rsList.getString("Content");
+            if (content != null) {
+                content = content.replace("\n", "<br>");
+            }
+
+            out.println("<div class='modern-review-row'>");
+            out.println("<span class='review-tag'>留言主題：</span><strong>" + rsList.getString("Subject") + "</strong><br>");
+            out.println("<span class='review-tag'>訪客姓名：</span>" + rsList.getString("GBName") + 
+                        " <span class='review-email'>(" + rsList.getString("Mail") + ")</span><br>");
+            out.println("<div class='review-text-content'>" + content + "</div>");
+            out.println("<span class='review-time'>留言時間：" + rsList.getString("Putdate") + "</span>");
+            out.println("</div>");
+        }
     }
-} catch (ClassNotFoundException err) {
-    out.println("驅動載入錯誤: " + err.toString());
+} catch (Exception e) {
+    out.println("錯誤：" + e.getMessage());
+} finally {
+    if (rsCount != null) try { rsCount.close(); } catch(SQLException e){}
+    if (rsList != null) try { rsList.close(); } catch(SQLException e){}
+    if (pstmtCount != null) try { pstmtCount.close(); } catch(SQLException e){}
+    if (pstmtList != null) try { pstmtList.close(); } catch(SQLException e){}
+    if (con != null) try { con.close(); } catch(SQLException e){}
 }
 %>
 </body>

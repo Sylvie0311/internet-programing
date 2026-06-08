@@ -1,39 +1,34 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%
-    //購物車的商品編號
+    request.setCharacterEncoding("UTF-8");
     String buyId = request.getParameter("buy_id");
 
-    //資料庫連線
     String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234"; 
 
-    if (buyId != null && buyId.length() > 0) {
+    if (buyId != null && !buyId.trim().isEmpty()) {
         Connection conn = null;
-        Statement stmt = null; 
-
+        PreparedStatement pstmt = null; 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            
             conn = DriverManager.getConnection(url, user, password);
-            
-            stmt = conn.createStatement();
-            
-            String sql = "INSERT INTO shopping_cart (Product_ID, Quantity) VALUES ('" + buyId + "', 1)";
-            
-            stmt.executeUpdate(sql);
+
+            String sql = "INSERT INTO shopping_cart (Product_ID, Quantity) VALUES (?, 1)";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, buyId.trim());
+            pstmt.executeUpdate();
         } 
         catch (SQLException sExec) {
             out.print("資料庫寫入失敗：" + sExec.toString());
         } 
         finally {
-            //關閉
-            if (stmt != null) { stmt.close(); }
-            if (conn != null) { conn.close(); }
+            if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+            if (conn != null) try { conn.close(); } catch(SQLException e){}
         }
     }
 
-    //再連回product
+    // 加入購物車後導向購物車頁面
     response.sendRedirect("cart.jsp");
 %>
