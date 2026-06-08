@@ -1,4 +1,66 @@
+<%@ page import = "java.sql.*, java.util.*"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+    // 1. 取得目前登入的會員帳號。在實際系統中，通常會從 session 中撈取，這邊做一個防呆：如果 session 沒有就先用預設 '02' 測試
+    String loginId = (String) session.getAttribute("loginId");
+    if (loginId == null || loginId.trim().equals("")) {
+        loginId = "02"; // 測試用預設顧客帳號，若要測試管理員可改為 "root"
+    }
+
+    // 2. 宣告存放資料庫欄位的變數
+    String dbMemberId = loginId;
+    String dbRole = "customer";
+    
+    String dbName = "未命名會員";
+    String dbGender = "不透露";
+    String dbBirth = "2003/04/23";
+    String dbAddress = "桃園市中壢區200號";
+    String dbPhone = "0912-345-678";
+    String dbEmail = "user@example.com";
+
+    // 3. 開始連線 MySQL 資料庫
+    String url = "jdbc:mysql://localhost:3306/members?serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false";
+    String user = "root";
+    String password = "board";
+
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
+    try {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        conn = DriverManager.getConnection(url, user, password);
+        
+        // 查詢符合目前登入 ID 的會員資料
+        String sql = "SELECT * FROM members WHERE id = ?";
+        stmt = conn.prepareStatement(sql);
+        stmt.setString(1, loginId);
+        rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            dbMemberId = rs.getString("id");
+            dbRole = rs.getString("role");
+            
+             
+            // 為了不讓原本網頁的姓名、信箱變成空白，如果撈出來是 root，動態給管理者名稱，是 02 就給娜魯灣。
+            if(dbMemberId.equals("root")) {
+                dbName = "系統管理員 (root)";
+                dbEmail = "admin@medicalsystem.com";
+                dbGender = "男";
+            } else {
+                dbName = "娜魯灣 娜魯吐 娜魯水 娜魯7-11";
+                dbEmail = "wanyiting@example.com";
+                dbGender = "女";
+            }
+        }
+    } catch (Exception e) {
+        dbName = "資料庫讀取失敗";
+    } finally {
+        if (rs != null) rs.close();
+        if (stmt != null) stmt.close();
+        if (conn != null) conn.close();
+    }
+%>
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -40,7 +102,7 @@ h1 {
   font-size: 18px;
   border-bottom: 2px solid #000;
   margin-bottom: 10px;
-  text-align: left; /* 電腦版靠左 */
+  text-align: left; 
 }
 
 /* 評論區塊 */
@@ -66,8 +128,8 @@ h1 {
 }
 
 .product-ing {
-  width: 0px;   /* 更小的寬度 */
-  height: 12px;  /* 更小的高度 */
+  width: 0px;   
+  height: 12px;  
 }
 
 
@@ -188,9 +250,8 @@ h1 {
   color: #0056b3;
 }
 
-/* 搜尋列 */
 .search-bar img {
-  height: 20px; /* 恢復原始高度 */
+  height: 20px; 
   width: auto;
   vertical-align: middle;
   margin-right: 10px;
@@ -201,7 +262,7 @@ h1 {
   margin-left: 10px;
   border: none;        
   background: none;     
-  padding: 0;           
+  padding: 0;          
   outline: none;       
 }
 
@@ -298,7 +359,7 @@ h1 {
   .member-box {
     flex-direction: column; 
     text-align: center;    
-    margin: 10px;         
+    margin: 10px;          
     gap: 20px;             
   }
 
@@ -329,7 +390,6 @@ h1 {
   <a href="../index.jsp">
     <img src="../images/arrow.png" class="arrow">
   </a>
-<!-- 外層大框 -->
 <div class="review-box">
 
   <h2 class="title">我的評論與評分：</h2>
@@ -384,11 +444,8 @@ h1 {
   </div> 
 </div>
 
-<!--歷史訂單／消費紀錄：會員介面-->
-
-  <h1>歷史訂單</h1>
+<h1>歷史訂單</h1>
   <div class="search-box">
-  <!-- 搜尋列 -->
   <div class="search-bar">
     <link rel="stylesheet" href="../index.jsp">
     <span class="bracket">[</span>
@@ -399,9 +456,7 @@ h1 {
     <span class="bracket">]</span>
   </div>
 
-  <!-- 表格 -->
   <table class="order-table">
-    <!-- 表頭列 -->
     <tr>
       <th>訂單編號</th>
       <th>訂購日期</th>
@@ -410,7 +465,6 @@ h1 {
       <th>動作</th>
     </tr>
 
-    <!-- 資料列 -->
     <tr>
       <td>KB1768</td>
       <td>2025/11/20</td>
@@ -452,9 +506,7 @@ h1 {
     </tr>
   </table>
 </div>
-</div>
 
-<!-- ===== 會員介面 ===== -->
 <div class="box" id="member">
   <h1>會員介面</h1>
   <div class="member-box">
@@ -462,13 +514,14 @@ h1 {
       <img src="../images/93642.jpg" alt="會員頭像">
     </div>
     <div class="member-info">
-      <p>姓名：娜魯灣 娜魯吐 娜魯水 娜魯7-11</p>
-      <p>性別：女</p>
-      <p>生日：2003/04/23</p>
-      <p>地址：桃園市中壢區200號</p>
-      <p>電話：0912-345-678</p>
-      <p>電子信箱：wanyiting@example.com</p>
-
+      <p>帳號：<%= dbMemberId %></p>
+      <p>身分權限：<%= dbRole %></p>
+      <p>姓名：<%= dbName %></p>
+      <p>性別：<%= dbGender %></p>
+      <p>生日：<%= dbBirth %></p>
+      <p>地址：<%= dbAddress %></p>
+      <p>電話：<%= dbPhone %></p>
+      <p>電子信箱：<%= dbEmail %></p>
     </div>
   </div>
 </div>
@@ -515,7 +568,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
 </script>
 </body>
 </html>
