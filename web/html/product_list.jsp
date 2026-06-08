@@ -112,7 +112,7 @@
 </head>
 </head>
 <body>
-<%
+    <%
     String role = (String)session.getAttribute("role");
     if(role == null || !role.equals("admin")) {
         out.println("<h3>您沒有權限存取此頁面！</h3>");
@@ -137,14 +137,18 @@
         <th>操作</th>
     </tr>
 <%
+Connection con = null;
+PreparedStatement pstmt = null;
+ResultSet rs = null;
 try {
     Class.forName("com.mysql.cj.jdbc.Driver");
-    Connection con = DriverManager.getConnection(
+    con = DriverManager.getConnection(
         "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
         "root", "1234");
 
     String sql = "SELECT Product_ID, Product_Name, Specification, Unit_Price FROM Product ORDER BY Product_ID ASC";
-    ResultSet rs = con.createStatement().executeQuery(sql);
+    pstmt = con.prepareStatement(sql);
+    rs = pstmt.executeQuery();
 
     while(rs.next()) {
 %>
@@ -160,9 +164,12 @@ try {
     </tr>
 <%
     }
-    con.close();
 } catch(Exception e) {
     out.println("錯誤：" + e.getMessage());
+} finally {
+    if (rs != null) try { rs.close(); } catch(SQLException e){}
+    if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+    if (con != null) try { con.close(); } catch(SQLException e){}
 }
 %>
 </table>

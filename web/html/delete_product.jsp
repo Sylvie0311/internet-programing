@@ -75,17 +75,26 @@
     String id = request.getParameter("Product_ID");
     
     if(id != null && !id.isEmpty()) {
+        Connection con = null;
+        PreparedStatement pstmtDetail = null;
+        PreparedStatement pstmtProduct = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection con = DriverManager.getConnection(
+            con = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
                 "root", "1234");
-    
-            String sql = "DELETE FROM Product WHERE Product_ID=?";
-            PreparedStatement pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, id);
-            int rows = pstmt.executeUpdate();
-            con.close();
+
+            // 先刪除 invoice_detail 中的紀錄
+            String sqlDetail = "DELETE FROM invoice_detail WHERE Product_ID=?";
+            pstmtDetail = con.prepareStatement(sqlDetail);
+            pstmtDetail.setString(1, id);
+            pstmtDetail.executeUpdate();
+
+            // 再刪除 Product
+            String sqlProduct = "DELETE FROM Product WHERE Product_ID=?";
+            pstmtProduct = con.prepareStatement(sqlProduct);
+            pstmtProduct.setString(1, id);
+            int rows = pstmtProduct.executeUpdate();
 %>
     <div class="card">
         <h2>刪除商品</h2>
@@ -101,10 +110,15 @@
             }
         %>
         <a href="product_list.jsp" class="btn-back">返回商品列表</a>
+        <a href="../index.jsp" class="btn-back">返回首頁</a>
     </div>
 <%
         } catch(Exception e) {
             out.println("<div class='card'><p>錯誤：" + e.getMessage() + "</p></div>");
+        } finally {
+            if (pstmtDetail != null) try { pstmtDetail.close(); } catch(SQLException e){}
+            if (pstmtProduct != null) try { pstmtProduct.close(); } catch(SQLException e){}
+            if (con != null) try { con.close(); } catch(SQLException e){}
         }
     } else {
 %>
@@ -112,6 +126,7 @@
         <h2>刪除商品</h2>
         <p>未指定要刪除的商品！</p>
         <a href="product_list.jsp" class="btn-back">返回商品列表</a>
+        <a href="../index.jsp" class="btn-back">返回首頁</a>
     </div>
 <%
     }

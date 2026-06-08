@@ -1,47 +1,48 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%
-    // 資料庫連線
+    // 資料庫連線資訊
     String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234";
 
-    // 商品編號
+    // 取得操作參數
     String action = request.getParameter("action");
     String pIdParam = request.getParameter("p_id");
 
-    // 數量加減、刪除 
+    // 數量加減、刪除
     if (action != null && pIdParam != null) {
         Connection connAction = null;
-        Statement stmtAction = null;
+        PreparedStatement pstmtAction = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             connAction = DriverManager.getConnection(url, user, password);
-            stmtAction = connAction.createStatement();
-
-            String sqlAction = "";
 
             if (action.equals("add")) {
-                sqlAction = "UPDATE shopping_cart SET Quantity = Quantity + 1 WHERE Product_ID = '" + pIdParam + "'";
+                String sql = "UPDATE shopping_cart SET Quantity = Quantity + 1 WHERE Product_ID=?";
+                pstmtAction = connAction.prepareStatement(sql);
+                pstmtAction.setString(1, pIdParam);
+                pstmtAction.executeUpdate();
             } else if (action.equals("minus")) {
-                sqlAction = "UPDATE shopping_cart SET Quantity = Quantity - 1 WHERE Product_ID = '" + pIdParam + "' AND Quantity > 1";
+                String sql = "UPDATE shopping_cart SET Quantity = Quantity - 1 WHERE Product_ID=? AND Quantity > 1";
+                pstmtAction = connAction.prepareStatement(sql);
+                pstmtAction.setString(1, pIdParam);
+                pstmtAction.executeUpdate();
             } else if (action.equals("delete")) {
-                sqlAction = "DELETE FROM shopping_cart WHERE Product_ID = '" + pIdParam + "'";
-            } 
-            if (!sqlAction.equals("")) {
-                stmtAction.executeUpdate(sqlAction);
+                String sql = "DELETE FROM shopping_cart WHERE Product_ID=?";
+                pstmtAction = connAction.prepareStatement(sql);
+                pstmtAction.setString(1, pIdParam);
+                pstmtAction.executeUpdate();
             }
-            
+
             // 重新導向回自己，刷新購物車數據
             response.sendRedirect("cart.jsp");
             return;
-        }
-        catch (SQLException sExec) {
+        } catch (SQLException sExec) {
             out.print("<script>alert('購物車操作失敗：" + sExec.toString().replace("'", "\\'") + "');</script>");
-        } 
-        finally {
-            if (stmtAction != null) { try { stmtAction.close(); } catch (SQLException e) {} }
-            if (connAction != null) { try { connAction.close(); } catch (SQLException e) {} }
+        } finally {
+            if (pstmtAction != null) try { pstmtAction.close(); } catch (SQLException e) {}
+            if (connAction != null) try { connAction.close(); } catch (SQLException e) {}
         }
     }
 %>
@@ -188,102 +189,100 @@
 </head>
 <body>
 
-<div class="cart-container">
-    <h2>🛒 我的購物車</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>商品編號</th>
-                <th>商品名稱</th>
-                <th>單價</th>
-                <th>數量</th>
-                <th>小計</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-        <%
-            Connection conn = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-            int totalSum = 0; 
-            boolean hasItems = false; 
-
-            try {
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                conn = DriverManager.getConnection(url, user, password);
-                stmt = conn.createStatement();
-
-                String sql = "SELECT Product_ID, Quantity FROM shopping_cart";
-                rs = stmt.executeQuery(sql);
-
-                while (rs.next()) {
-                    hasItems = true;
-                    String pId = rs.getString("Product_ID");
-                    int qty = rs.getInt("Quantity");
-                    
-                    String pName = "";
-                    int price = 0;
-                    
-                    Statement stmtDetail = conn.createStatement();
-                    String sqlDetail = "SELECT Product_Name, Unit_Price FROM Product WHERE Product_ID = '" + pId + "'";
-                    ResultSet rsDetail = stmtDetail.executeQuery(sqlDetail);
-                    if (rsDetail.next()) {
-                        pName = rsDetail.getString("Product_Name");
-                        price = rsDetail.getInt("Unit_Price");
-                    }
-                    rsDetail.close();
-                    stmtDetail.close();
-                    
-                    int subTotal = price * qty; 
-                    totalSum += subTotal;        
-		%>
-                    <tr>
-                        <td><%= pId %></td>
-                        <td style="text-align: left;"><%= pName %></td>
-                        <td>$<%= price %> 元</td>
-                        <td>
-                            <a href="cart.jsp?action=minus&p_id=<%= pId %>" class="qty-btn">−</a>
-                            <strong class="qty-text"><%= qty %></strong>
-                            <a href="cart.jsp?action=add&p_id=<%= pId %>" class="qty-btn">+</a>
-                        </td>
-                        <td style="color: var(--price-color); font-weight: bold;">$<%= subTotal %> 元</td>
-                        <td>
-                            <button type="button" class="delete-btn" onclick="confirmDelete('<%= pName.replace("'", "\\'") %>', '<%= pId %>')">🗑️ 刪除</button>
-                        </td>
-                    </tr>
-        <%
-                }
-            } 
-            catch (SQLException sExec) {
-                out.print("<tr><td colspan='6' style='color:red;'>購物車讀取失敗：" + sExec.toString() + "</td></tr>");
-            } 
-            finally {
-                if (rs != null) { try { rs.close(); } catch (SQLException e) {} }
-                if (stmt != null) { try { stmt.close(); } catch (SQLException e) {} }
-                if (conn != null) { try { conn.close(); } catch (SQLException e) {} }
-            }
-        %>
-        </tbody>
-    </table>
-
-    <% if (!hasItems) { %>
-        <div class="empty-msg">您的購物車目前是空的喔！快去挑選一些需要的醫療器材吧！</div>
-    <% } else { %>
-        <div class="total-box">
-            結帳總金額： $<%= totalSum %> 元
-        </div>
-    <% } %>
-
-    <div class="actions-box">
-        <a href="../index.jsp" class="btn-secondary">⬅ 繼續購物</a>
-        
-        <% if (hasItems) { %>
-            <a href="checkout.jsp" class="btn-primary">確認結帳並付款 ➡</a>
-        <% } %>
-    </div>
-</div>
-
-</body>
-</html>
+	<div class="cart-container">
+		<h2>🛒 我的購物車</h2>
+	
+		<table>
+			<thead>
+				<tr>
+					<th>商品編號</th>
+					<th>商品名稱</th>
+					<th>單價</th>
+					<th>數量</th>
+					<th>小計</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			<%
+				Connection conn = null;
+				PreparedStatement pstmtCart = null;
+				ResultSet rs = null;
+				int totalSum = 0; 
+				boolean hasItems = false; 
+	
+				try {
+					Class.forName("com.mysql.cj.jdbc.Driver");
+					conn = DriverManager.getConnection(url, user, password);
+	
+					String sql = "SELECT Product_ID, Quantity FROM shopping_cart";
+					pstmtCart = conn.prepareStatement(sql);
+					rs = pstmtCart.executeQuery();
+	
+					while (rs.next()) {
+						hasItems = true;
+						String pId = rs.getString("Product_ID");
+						int qty = rs.getInt("Quantity");
+	
+						String pName = "";
+						int price = 0;
+	
+						PreparedStatement pstmtDetail = conn.prepareStatement("SELECT Product_Name, Unit_Price FROM Product WHERE Product_ID=?");
+						pstmtDetail.setString(1, pId);
+						ResultSet rsDetail = pstmtDetail.executeQuery();
+						if (rsDetail.next()) {
+							pName = rsDetail.getString("Product_Name");
+							price = rsDetail.getInt("Unit_Price");
+						}
+						rsDetail.close();
+						pstmtDetail.close();
+	
+						int subTotal = price * qty; 
+						totalSum += subTotal;        
+			%>
+						<tr>
+							<td><%= pId %></td>
+							<td style="text-align: left;"><%= pName %></td>
+							<td>$<%= price %> 元</td>
+							<td>
+								<a href="cart.jsp?action=minus&p_id=<%= pId %>" class="qty-btn">−</a>
+								<strong class="qty-text"><%= qty %></strong>
+								<a href="cart.jsp?action=add&p_id=<%= pId %>" class="qty-btn">+</a>
+							</td>
+							<td style="color: var(--price-color); font-weight: bold;">$<%= subTotal %> 元</td>
+							<td>
+								<button type="button" class="delete-btn" onclick="confirmDelete('<%= pName.replace("'", "\\'") %>', '<%= pId %>')">🗑️ 刪除</button>
+							</td>
+						</tr>
+			<%
+					}
+				} catch (SQLException sExec) {
+					out.print("<tr><td colspan='6' style='color:red;'>購物車讀取失敗：" + sExec.toString() + "</td></tr>");
+				} finally {
+					if (rs != null) try { rs.close(); } catch (SQLException e) {}
+					if (pstmtCart != null) try { pstmtCart.close(); } catch (SQLException e) {}
+					if (conn != null) try { conn.close(); } catch (SQLException e) {}
+				}
+			%>
+			</tbody>
+		</table>
+	
+		<% if (!hasItems) { %>
+			<div class="empty-msg">您的購物車目前是空的喔！快去挑選一些需要的醫療器材吧！</div>
+		<% } else { %>
+			<div class="total-box">
+				結帳總金額： $<%= totalSum %> 元
+			</div>
+		<% } %>
+	
+		<div class="actions-box">
+			<a href="../index.jsp" class="btn-secondary">⬅ 繼續購物</a>
+			
+			<% if (hasItems) { %>
+				<a href="checkout.jsp" class="btn-primary">確認結帳並付款 ➡</a>
+			<% } %>
+		</div>
+	</div>
+	
+	</body>
+	</html>

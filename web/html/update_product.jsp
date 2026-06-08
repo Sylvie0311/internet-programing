@@ -98,7 +98,7 @@ request.setCharacterEncoding("UTF-8");
 String role = (String)session.getAttribute("role");
 if(role == null || !role.equals("admin")) {
     out.println("<h3>您沒有權限存取此頁面！</h3>");
-    out.println("<a href='login.html'>請先登入管理員帳號</a>");
+    out.println("<a href='login.jsp'>請先登入管理員帳號</a>");
     return;
 }
 
@@ -110,15 +110,24 @@ if(request.getParameter("Product_Name") != null) {
     String spec = request.getParameter("Specification");
     String price = request.getParameter("Unit_Price");
 
+    Connection con = null;
+    PreparedStatement pstmt = null;
     try {
+        int unitPrice = Integer.parseInt(price); // 驗證單價是否為數字
+
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
+        con = DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
             "root", "1234");
 
-        String sql = "UPDATE Product SET Product_Name='" + name + "', Specification='" + spec + "', Unit_Price=" + price + " WHERE Product_ID='" + id + "'";
-        int rows = con.createStatement().executeUpdate(sql);
-        con.close();
+        String sql = "UPDATE Product SET Product_Name=?, Specification=?, Unit_Price=? WHERE Product_ID=?";
+        pstmt = con.prepareStatement(sql);
+        pstmt.setString(1, name);
+        pstmt.setString(2, spec);
+        pstmt.setInt(3, unitPrice);
+        pstmt.setString(4, id);
+
+        int rows = pstmt.executeUpdate();
 
         if(rows > 0) {
             out.println("商品修改成功！<br>");
@@ -126,19 +135,30 @@ if(request.getParameter("Product_Name") != null) {
         } else {
             out.println("修改失敗！");
         }
+    } catch(NumberFormatException nfe) {
+        out.println("錯誤：單價必須為數字！");
     } catch(Exception e) {
         out.println("錯誤：" + e.getMessage());
+    } finally {
+        if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+        if (con != null) try { con.close(); } catch(SQLException e){}
     }
 } else {
     // 第一次進來，顯示原始資料
+    Connection con = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
+        con = DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
             "root", "1234");
 
-        String sql = "SELECT * FROM Product WHERE Product_ID='" + id + "'";
-        ResultSet rs = con.createStatement().executeQuery(sql);
+        String sql = "SELECT * FROM Product WHERE Product_ID=?";
+        pstmt = con.prepareStatement(sql);
+        pstmt.setString(1, id);
+        rs = pstmt.executeQuery();
+
         if(rs.next()) {
 %>
 <h2>修改商品</h2>
@@ -164,14 +184,16 @@ if(request.getParameter("Product_Name") != null) {
     </form>
     <a href="product_list.jsp" class="btn-back">返回商品列表</a>
 </div>
-
 <%
         } else {
             out.println("找不到商品！");
         }
-        con.close();
     } catch(Exception e) {
         out.println("錯誤：" + e.getMessage());
+    } finally {
+        if (rs != null) try { rs.close(); } catch(SQLException e){}
+        if (pstmt != null) try { pstmt.close(); } catch(SQLException e){}
+        if (con != null) try { con.close(); } catch(SQLException e){}
     }
 }
 %>
