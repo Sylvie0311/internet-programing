@@ -245,7 +245,7 @@ body {
         
         <form action="login.jsp" method="get">
             <input type="hidden" name="action" value="logout">
-            <button type="submit" class="btn-logout">安全登出系統</button>
+            <button type="submit" class="btn-logout">登出</button>
         </form>
     <%
         } else { 
@@ -290,7 +290,7 @@ body {
 </div>
 
 <script>
-// 控制「登入」與「註冊」的切換按鈕
+// 控制「登入」與「註冊」的切換顯示
 function toggleForm(showRegister) {
     const loginSec = document.getElementById('login-section');
     const registerSec = document.getElementById('register-section');
