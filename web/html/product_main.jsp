@@ -1,57 +1,43 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-
+    request.setCharacterEncoding("UTF-8");
     String productId = request.getParameter("id");
-    if(productId == null || productId.trim().equals("")) {
-        productId = "P001"; 
-    }
-
 
     String dbProductName = "";
     String dbSpecification = "";
-    int dbUnitPrice = 0;
     String dbProductIntro = "";
-    String dbImgName = "";
+    int dbUnitPrice = 0;
 
-
-    String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
-    String user = "root";
-    String password = "1234";
-
-    Connection mainConn = null;
-    PreparedStatement mainStmt = null;
-    ResultSet mainRs = null;
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        mainConn = DriverManager.getConnection(url, user, password);
-        
+        String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+        String user = "root";
+        String password = "1234";
+        conn = DriverManager.getConnection(url, user, password);
 
-        String sql = "SELECT * FROM Product WHERE Product_ID = ?";
-        mainStmt = mainConn.prepareStatement(sql);
-        mainStmt.setString(1, productId);
-        mainRs = mainStmt.executeQuery();
-
-        if (mainRs.next()) {
-            dbProductName = mainRs.getString("Product_Name");
-            dbUnitPrice = mainRs.getInt("Unit_Price");
+        String sql = "SELECT Product_Name, Specification, Unit_Price FROM Product WHERE Product_ID=?";
+        pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, productId);
+        rs = pstmt.executeQuery();
         
-            try { dbSpecification = mainRs.getString("Specification"); } catch(Exception e) { dbSpecification = "規格詳見說明"; }
-            try { dbProductIntro = mainRs.getString("Description"); } catch(Exception e) { dbProductIntro = dbProductName + "，專業醫療級品質保障。"; }
-        } else {
-            dbProductName = "醫療商品";
-            dbUnitPrice = 0;
-            dbSpecification = "-";
-            dbProductIntro = "暫無商品簡介說明。";
+        if (rs.next()) {
+            dbProductName = rs.getString("Product_Name");
+            dbSpecification = rs.getString("Specification");
+            dbUnitPrice = rs.getInt("Unit_Price");
+            dbProductIntro = "尚無商品介紹"; // 預設文字
         }
+        
     } catch (Exception e) {
-        dbProductName = "資料讀取失敗";
-        dbProductIntro = e.getMessage();
+        out.println("<p style='color:red; text-align:center;'>資料庫查詢失敗：" + e.getMessage() + "</p>");
     } finally {
-        if (mainRs != null) mainRs.close();
-        if (mainStmt != null) mainStmt.close();
-        if (mainConn != null) mainConn.close();
+        if (rs != null) try { rs.close(); } catch (SQLException e) {}
+        if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+        if (conn != null) try { conn.close(); } catch (SQLException e) {}
     }
 %>
 <!DOCTYPE html>
@@ -343,7 +329,9 @@ hr {
     <div class="product-container">
         <div class="product_container1">
             <div class="product-picture">
-                <img src="../images/<%= productId %>.jpg" onerror="this.onerror=null; this.src='../images/<%= dbProductName %>.jpg';" alt="商品圖片" id="p-img">
+                <img src="../images/<%= productId %>.jpg" 
+                     onerror="this.onerror=null; this.src='../images/default.jpg';" 
+                     alt="商品圖片" id="p-img">
             </div>
         </div>
         
@@ -370,7 +358,7 @@ hr {
             </div>
 
             <div class="buy-button">
-                <button type="button" id="add-to-cart">加入購物車</button>
+                <a href="add_to_cart.jsp?buy_id=<%= productId %>" id="add-to-cart">加入購物車</a>
             </div>
         </div>
     </div>
@@ -378,13 +366,11 @@ hr {
     <div class="comment">
         <h1>顧客評論與評分 💭</h1>
         <hr>
-
         <div id="comment-list-container">
             <div class="comment-block">
                 <iframe src="view.jsp?page=1" width="100%" height="400" frameborder="0"></iframe>
             </div>
         </div>
-        
         <div class="comment-bottom">
             <form action="board.jsp" method="get">
                 <div class="t">
