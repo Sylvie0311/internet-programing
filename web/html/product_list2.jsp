@@ -192,6 +192,7 @@
         while (rs.next()) {
             String pId = rs.getString("Product_ID");
             int qty = rs.getInt("Quantity");
+			if (qty<0) { qty=0;}
             
             if (pId.equals("P001")) { s1 = qty; }
             else if (pId.equals("P002")) { s2 = qty; }
@@ -223,7 +224,11 @@
             <p>目前庫存：<strong><%= s1 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P001" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P001" class="btn-cart">加入購物車</a>
+				<% if (s1 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P001" onclick="return checkStock(<%= s1 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -235,7 +240,11 @@
             <p>目前庫存：<strong><%= s2 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P002" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P002" class="btn-cart">加入購物車</a>
+                <% if (s2 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P002" onclick="return checkStock(<%= s2 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -247,7 +256,11 @@
             <p>目前庫存：<strong><%= s3 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P003" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P003" class="btn-cart">加入購物車</a>
+               <% if (s3 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P003" onclick="return checkStock(<%= s3 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -259,7 +272,11 @@
             <p>目前庫存：<strong><%= s4 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P004" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P004" class="btn-cart">加入購物車</a>
+                <% if (s4 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P004" onclick="return checkStock(<%= s4 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -271,7 +288,11 @@
             <p>現有庫存：<strong><%= s5 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P005" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P005" class="btn-cart">加入購物車</a>
+                <% if (s5 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P005" onclick="return checkStock(<%= s5 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -283,7 +304,11 @@
             <p>目前庫存：<strong><%= s6 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P006" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P006" class="btn-cart">加入購物車</a>
+                <% if (s6 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P006" onclick="return checkStock(<%= s6 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -295,7 +320,11 @@
             <p>目前庫存：<strong><%= s7 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P007" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P007" class="btn-cart">加入購物車</a>
+                <% if (s7 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P007" onclick="return checkStock(<%= s7 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -307,7 +336,11 @@
             <p>目前庫存：<strong><%= s8 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P008" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P008" class="btn-cart">加入購物車</a>
+                <% if (s8 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P008" onclick="return checkStock(<%= s8 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -319,7 +352,11 @@
             <p>目前庫存：<strong><%= s9 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P009" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P009" class="btn-cart">加入購物車</a>
+                <% if (s9 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P009" onclick="return checkStock(<%= s9 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
@@ -331,7 +368,11 @@
             <p>目前庫存：<strong><%= s10 %></strong> 件</p>
             <div class="action-group">
                 <a href="product_main.jsp?id=P010" class="btn-view">🔍 檢視商品</a>
-                <a href="add_to_cart.jsp?buy_id=P010" class="btn-cart">加入購物車</a>
+                <% if (s10 > 0) { %>
+                    <a href="add_to_cart.jsp?buy_id=P010" onclick="return checkStock(<%= s10 %>, event)" class="btn-cart">加入購物車</a>
+                <% } else { %>
+                    <a href="javascript:void(0);" onclick="alert('抱歉哦~暫時沒有庫存了!')" class="btn-out-of-stock">暫無庫存</a>
+                <% } %>
             </div>
         </div>
 
