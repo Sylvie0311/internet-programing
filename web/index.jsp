@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-    --primary-color: #00A49E;      
-    --primary-hover: #008782;       
+    --primary-color: #008f8a;      
+    --primary-hover: #006d69;       
     --secondary-bg: #E6F4F3;        
     --text-color: #333333;          
     --light-gray: #F8F9FA;          
@@ -32,7 +32,22 @@ body {
     color: var(--text-color);
     line-height: 1.6;
 }
+.promo-bar {
+    background-color:#E6F4F3;
+    color: black;
+    height: 35px;
+    line-height: 35px;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    font-size: 14px;
+}
 
+.promo-text {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 20s linear infinite;
+}
 a {
     text-decoration: none;
     color: inherit;
@@ -193,7 +208,30 @@ nav {
     background-color: var(--primary-color);
     border-radius: 2px;
 }
+/* 廣告 */
+.banner-section {
+    width: 100%;
+    margin-bottom: 40px;
+    overflow: hidden;
+    border-radius: 15px; /* 圓角效果 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* 陰影提升質感 */
+}
 
+.banner-link {
+    display: block;
+    line-height: 0; /* 去除圖片下方間隙 */
+}
+
+.banner-section img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    transition: transform 0.5s ease; /* 放大動畫效果 */
+}
+
+.banner-section img:hover {
+    transform: scale(1.03); /* 滑鼠游標懸停時放大 3% */
+}
 .products {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -419,6 +457,10 @@ footer {
     margin-top: 20px;
 }
 
+@keyframes marquee {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}
 @media (max-width: 992px) {
     .products { grid-template-columns: repeat(2, 1fr); min-height: 1150px; }
 }
@@ -438,12 +480,17 @@ footer {
     .products { grid-template-columns: repeat(1, 1fr); min-height: 3200px; }
     .product { height: 500px; }
 }
+@media (max-width: 768px) {
+    .banner-section {
+        border-radius: 8px;
+        margin-bottom: 25px;
+    }
+}
 </style>
 </head>
 <body>
-
     <header>
-        <h1 class="site-title">醫療器材販賣商城</h1>
+        <h1 class="site-title">MedEquip Mart</h1>
     </header>
 
     <nav> 
@@ -476,6 +523,7 @@ footer {
             <form action="index.jsp" method="get" class="search-wrapper">
                 <input type="text" name="keyword" value="<%= request.getParameter("keyword") != null ? request.getParameter("keyword") : "" %>" placeholder="搜尋商品..." class="search-bar" id="search-input">
             </form>
+			
         </div>
       
         <div class="nav-right">
@@ -493,11 +541,22 @@ footer {
             </div>
         </div>
     </nav>
-
+	
+	<div class="promo-bar">
+        <div class="promo-text">
+            <a href="html/subsidy.jsp">📢 慶祝開幕！全館醫療器材單筆消費滿 $2,000 免運費！ | 🔥 輔具申請補助諮詢開跑，歡迎點擊詢問！ | 🚚 雙北地區提供快速配送服務，歡迎加入會員享首購折價券！</a>
+        </div>
+    </div>
+	
     <div class="container">
         <main>
+			<section class="banner-section">
+				<a href="html/product_main.jsp?id=P009" class="banner-link">
+					<img src="images/090734.jfif" alt="廣告橫幅">
+				</a>
+			</section>
             <h2 class="hot">🔥熱銷商品🔥</h2>
-
+			
             <section class="products" id="product-container">
             
             <%
@@ -644,6 +703,14 @@ footer {
             %>
             </section>
             
+            <% if (keyword != null && !keyword.trim().isEmpty()) { %>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <a href="index.jsp" style="padding: 10px 25px; background-color: var(--primary-color); color: white; border-radius: 6px; font-size: 14px; text-decoration: none;">
+                        回首頁
+                    </a>
+                </div>
+            <% } %>
+			
             <div class="pagination">
                 <a href="index.jsp?keyword=<%= java.net.URLEncoder.encode(keyword, "UTF-8") %>&page=<%= currentPage - 1 %>" 
                    class="<%= currentPage == 1 ? "disabled" : "" %>">&lt;</a>
