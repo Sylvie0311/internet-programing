@@ -1,68 +1,74 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*" %>
+<%@ page import="java.sql.*, java.util.*, java.time.LocalDate" %>
 <%
-    // 資料庫連線
-    String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+    String urlCart = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+    String urlBoard = "jdbc:mysql://localhost:3306/board?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234"; 
 
-    Connection conn = null;
-    PreparedStatement pstmtGetCart = null;
-    PreparedStatement pstmtUpdateStock = null; 
-    PreparedStatement pstmtClearCart = null;
+    Connection connCart = null;
+    Connection connBoard = null;
+    PreparedStatement pstmt = null;
     ResultSet rs = null;
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        conn = DriverManager.getConnection(url, user, password);
+        connCart = DriverManager.getConnection(urlCart, user, password);
+        connBoard = DriverManager.getConnection(urlBoard, user, password);
 
-        // 取得購物車商品
-        String getCartSql = "SELECT Product_ID, Quantity FROM shopping_cart";
-        pstmtGetCart = conn.prepareStatement(getCartSql);
-        rs = pstmtGetCart.executeQuery();
 
-        // 更新庫存
-        String updateStockSql = "UPDATE Inventory SET Quantity = Quantity - ? WHERE Product_ID = ?";
-        pstmtUpdateStock = conn.prepareStatement(updateStockSql);
+        String sqlGetCart = "SELECT sc.Product_ID, sc.Quantity, p.Unit_Price FROM shopping_cart sc JOIN Product p ON sc.Product_ID = p.Product_ID";
+        pstmt = connCart.prepareStatement(sqlGetCart);
+        rs = pstmt.executeQuery();
+
+        List<Map<String, Object>> cartItems = new ArrayList<>();
+        int totalAmount = 0;
 
         while (rs.next()) {
-            String pId = rs.getString("Product_ID");
-            int buyQty = rs.getInt("Quantity");
-
-            pstmtUpdateStock.setInt(1, buyQty);
-            pstmtUpdateStock.setString(2, pId);
-            pstmtUpdateStock.executeUpdate();
+            Map<String, Object> item = new HashMap<>();
+            int qty = rs.getInt("Quantity");
+            int price = rs.getInt("Unit_Price");
+            item.put("pId", rs.getString("Product_ID"));
+            item.put("qty", qty);
+            cartItems.add(item);
+            totalAmount += (qty * price);
         }
 
-        // 清空購物車
-        String clearCartSql = "DELETE FROM shopping_cart";
-        pstmtClearCart = conn.prepareStatement(clearCartSql);
-        pstmtClearCart.executeUpdate();
+        if (totalAmount > 0) {
+            String orderId = "ORD" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            String memberId = (String) session.getAttribute("id");
+            if (memberId == null) memberId = "Guest";
+            
+            String sqlInsertOrder = "INSERT INTO orders (order_id, member_id, order_date, total_amount, status) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement pstmtInsert = connBoard.prepareStatement(sqlInsertOrder);
+            pstmtInsert.setString(1, orderId);
+            pstmtInsert.setString(2, memberId);
+            pstmtInsert.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
+            pstmtInsert.setInt(4, totalAmount);
+            pstmtInsert.setString(5, "待出貨");
+            pstmtInsert.executeUpdate();
+            pstmtInsert.close();
 
-        // 獲取登入者的角色身分
-        String role = (String) session.getAttribute("role");
+            String updateStockSql = "UPDATE Inventory SET Quantity = Quantity - ? WHERE Product_ID = ?";
+            PreparedStatement pstmtUpdateStock = connCart.prepareStatement(updateStockSql);
+            
+            for (Map<String, Object> item : cartItems) {
+                pstmtUpdateStock.setInt(1, (Integer) item.get("qty"));
+                pstmtUpdateStock.setString(2, (String) item.get("pId"));
+                pstmtUpdateStock.executeUpdate();
+            }
+            pstmtUpdateStock.close();
 
-        out.println("<script type='text/javascript'>");
-        out.println("alert('結帳成功！再回來逛逛吧！');");
-
-        if ("customer".equals(role)) {
-            out.println("window.location.href='../index.jsp';");
-        } else {
-            out.println("window.location.href='../index.jsp';");
+            connCart.createStatement().executeUpdate("DELETE FROM shopping_cart");
         }
-        out.println("</script>");
-    } 
-    catch (SQLException sExec) {
-        out.println("<script type='text/javascript'>");
-        out.println("alert('結帳處理失敗：" + sExec.toString().replace("'", "\\'") + "');");
-        out.println("window.location.href='cart.jsp';");
-        out.println("</script>");
-    } 
-    finally {
+
+        out.println("<script>alert('結帳成功！訂單已建立。'); window.location.href='member.jsp';</script>");
+    } catch (Exception e) {
+        out.println("<script>alert('結帳處理失敗：" + e.getMessage().replace("'", "\\'") + "'); window.location.href='cart.jsp';</script>");
+    } finally {
         if (rs != null) try { rs.close(); } catch (Exception e) {}
-        if (pstmtGetCart != null) try { pstmtGetCart.close(); } catch (Exception e) {}
-        if (pstmtUpdateStock != null) try { pstmtUpdateStock.close(); } catch (Exception e) {}
-        if (pstmtClearCart != null) try { pstmtClearCart.close(); } catch (Exception e) {}
-        if (conn != null) try { conn.close(); } catch (Exception e) {}
+        if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+        if (connCart != null) try { connCart.close(); } catch (Exception e) {}
+        if (connBoard != null) try { connBoard.close(); } catch (Exception e) {}
     }
 %>
