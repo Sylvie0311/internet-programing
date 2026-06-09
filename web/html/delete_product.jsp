@@ -90,6 +90,7 @@
         Connection con = null;
         PreparedStatement pstmtDetail = null;
         PreparedStatement pstmtInventory = null;
+        PreparedStatement pstmtCart = null;
         PreparedStatement pstmtProduct = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -98,7 +99,7 @@
                 "root", "1234");
 
             // 先刪除 invoice_detail
-            String sqlDetail = "DELETE FROM invoice_detail WHERE Product_ID=?";
+            String sqlDetail = "DELETE FROM Invoice_Detail WHERE Product_ID=?";
             pstmtDetail = con.prepareStatement(sqlDetail);
             pstmtDetail.setString(1, id);
             pstmtDetail.executeUpdate();
@@ -108,6 +109,12 @@
             pstmtInventory = con.prepareStatement(sqlInventory);
             pstmtInventory.setString(1, id);
             pstmtInventory.executeUpdate();
+
+            // 再刪除 shopping_cart
+            String sqlCart = "DELETE FROM shopping_cart WHERE Product_ID=?";
+            pstmtCart = con.prepareStatement(sqlCart);
+            pstmtCart.setString(1, id);
+            pstmtCart.executeUpdate();
 
             // 最後刪除 Product
             String sqlProduct = "DELETE FROM Product WHERE Product_ID=?";
@@ -131,6 +138,7 @@
         } finally {
             if (pstmtDetail != null) try { pstmtDetail.close(); } catch(SQLException e){}
             if (pstmtInventory != null) try { pstmtInventory.close(); } catch(SQLException e){}
+            if (pstmtCart != null) try { pstmtCart.close(); } catch(SQLException e){}
             if (pstmtProduct != null) try { pstmtProduct.close(); } catch(SQLException e){}
             if (con != null) try { con.close(); } catch(SQLException e){}
         }

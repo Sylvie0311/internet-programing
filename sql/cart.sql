@@ -63,16 +63,14 @@ CREATE TABLE Invoice_Detail (
     FOREIGN KEY (Product_ID) REFERENCES Product(Product_ID)
 );
 
--- 器材庫存資料表
+-- 器材庫存資料表 
 CREATE TABLE Inventory (
-    Inventory_ID VARCHAR(10),          
-    Product_ID VARCHAR(10),           
-    Lot_Number VARCHAR(20) NOT NULL,   
-    Expiry_Date DATE NOT NULL,
-    Quantity INT NOT NULL,             
-    PRIMARY KEY (Inventory_ID),
+    Inventory_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Product_ID VARCHAR(10) UNIQUE, 
+    Quantity INT NOT NULL,
     FOREIGN KEY (Product_ID) REFERENCES Product(Product_ID)
 );
+
 
 -- 購物車資料表
 CREATE TABLE shopping_cart (
@@ -127,19 +125,20 @@ INSERT INTO Invoice_Detail (Detail_ID, Invoice_ID, Product_ID, Quantity, Sale_Pr
 ('D009', 'INV20260320001', 'P009', 3, 4500), 
 ('D010', 'INV20260320001', 'P010', 3, 225);  
 
--- 庫存
-INSERT INTO Inventory (Inventory_ID, Product_ID, Lot_Number, Expiry_Date, Quantity) VALUES
-('IV001', 'P001', 'LOT12345', '2028-12-31', 502), 
-('IV002', 'P002', 'LOT67890', '2029-06-30', 13),
-('IV003', 'P003', 'LOT55667', '2027-03-15', 150), 
-('IV004', 'P004', 'LOT54132', '2028-04-16', 200), 
-('IV005', 'P005', 'LOT83167', '2029-05-16', 700), 
-('IV006', 'P006', 'LOT37912', '2030-07-28', 1344), 
-('IV007', 'P007', 'LOT48321', '2026-12-30', 721), 
-('IV008', 'P008', 'LOT93263', '2029-03-16', 153), 
-('IV009', 'P009', 'LOT32084', '2028-01-13', 42), 
-('IV010', 'P010', 'LOT73692', '2027-11-16', 138); 
+-- 庫存 
+INSERT INTO Inventory (Product_ID, Quantity) VALUES
+('P001', 502), 
+('P002', 13),
+('P003', 150), 
+('P004', 200), 
+('P005', 700), 
+('P006', 1344), 
+('P007', 721), 
+('P008', 153), 
+('P009', 42), 
+('P010', 138); 
 
+-- 查詢商品與庫存
 SELECT 
     p.Product_ID, 
     p.Product_Name, 
@@ -151,6 +150,7 @@ SELECT
 FROM Product p
 LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID;
 
+-- 查詢帳單明細
 SELECT 
     id.Invoice_ID,
     inv.Invoice_Date,
@@ -165,17 +165,4 @@ SELECT
 FROM Invoice_Detail id
 JOIN Invoice inv ON id.Invoice_ID = inv.Invoice_ID
 JOIN Member m ON inv.Member_ID = m.Member_ID
-JOIN Employee e ON inv.Employee_ID = e.Employee_ID
-JOIN Product p ON id.Product_ID = p.Product_ID
-ORDER BY id.Invoice_ID ASC, id.Detail_ID ASC;
-
-SELECT 
-    sc.cart_id,
-    sc.Product_ID,
-    p.Product_Name,
-    p.Specification,
-    p.Unit_Price,
-    sc.Quantity AS Cart_Quantity,
-    (p.Unit_Price * sc.Quantity) AS Item_Total
-FROM shopping_cart sc
-JOIN Product p ON sc.Product_ID = p.Product_ID;
+JOIN Employee e ON inv.Employee_ID = e.Employee

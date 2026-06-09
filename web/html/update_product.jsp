@@ -10,7 +10,6 @@
             --secondary-bg: #E6F4F3;        
             --text-color: #333333;          
             --border-color: #E5E5E5;        
-            --price-color: #FF5A5F;         
         }
 
         body {
@@ -132,7 +131,7 @@ if(request.getParameter("Product_Name") != null) {
         pstmtProduct.setString(4, id);
         int rowsProduct = pstmtProduct.executeUpdate();
 
-        // 更新庫存
+        // 更新庫存資料
         String sqlInventory = "UPDATE Inventory SET Quantity=? WHERE Product_ID=?";
         pstmtInventory = con.prepareStatement(sqlInventory);
         pstmtInventory.setInt(1, stockQty);
@@ -168,7 +167,8 @@ if(request.getParameter("Product_Name") != null) {
             "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
             "root", "1234");
 
-        String sql = "SELECT p.Product_ID, p.Product_Name, p.Specification, p.Unit_Price, IFNULL(i.Quantity,0) AS Stock_Quantity " +
+        String sql = "SELECT p.Product_ID, p.Product_Name, p.Specification, p.Unit_Price, " +
+                     "IFNULL(i.Quantity,0) AS Stock_Quantity " +
                      "FROM Product p LEFT JOIN Inventory i ON p.Product_ID=i.Product_ID WHERE p.Product_ID=?";
         pstmt = con.prepareStatement(sql);
         pstmt.setString(1, id);
@@ -196,6 +196,7 @@ if(request.getParameter("Product_Name") != null) {
                     <label>庫存數量:</label>
                     <input type="text" name="Stock_Quantity" value="<%=rs.getInt("Stock_Quantity")%>">
                 </div>
+
                 <input type="submit" value="修改商品" class="btn-submit">
             </form>
             <a href="product_list.jsp" class="btn-back">返回商品列表</a>
