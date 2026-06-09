@@ -1,40 +1,96 @@
 <%@ page import = "java.sql.*, java.util.*"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-    // 1. 同步取 session 的登入帳號
     Object sessionLoginId = session.getAttribute("id");
     if (sessionLoginId == null) {
         sessionLoginId = session.getAttribute("loginId");
     }
+
+    // 檢查是否登入
+    if (sessionLoginId == null) {
+%>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>尚未登入 - 會員中心</title>
+<style>
+body { 
+font-family: 'Noto Sans TC', sans-serif; 
+background-color: #E6F4F3; 
+display: flex; 
+justify-content: center; 
+align-items: center; 
+height: 100vh; 
+margin: 0; 
+}
+.login-alert { 
+background-color: #fff; 
+padding: 40px; 
+border-radius: 15px; 
+border: 2px solid #000; 
+box-shadow: 0 8px 16px rgba(0,0,0,0.15); 
+text-align: center; 
+}
+.login-alert h2 { 
+margin-bottom: 25px; 
+color: #333; 
+}
+.login-btn { 
+display: inline-block; 
+padding: 12px 30px; 
+background-color: #E8B4B8; 
+color: #000; 
+text-decoration: none; 
+border: 2px solid #000;
+border-radius: 8px; 
+font-weight: bold; 
+font-size: 16px; 
+box-shadow: 4px 4px 0px #000; 
+transition: all 0.2s; 
+}
+.login-btn:hover { 
+background-color: #D8A4A8; 
+transform: translate(2px, 2px); 
+box-shadow: 2px 2px 0px #000; 
+}
+</style>
+</head>
+<body>
+	<div class="login-alert">
+		<h2>您尚未登入 ，請點此處進行登入</h2>
+		<a href="login.jsp" class="login-btn">前往登入頁面</a>
+	</div>
+</body>
+</html>
+<%
+	return; 
+}
+
     String loginId = "";
     if (sessionLoginId != null) {
         loginId = String.valueOf(sessionLoginId).trim();
     }
     
-    if (loginId.equals("")) {
-        loginId = "user03"; 
-    }
-
     String dbMemberId = loginId;
-    
 
     String dbRole = (String) session.getAttribute("role");
     if (dbRole == null) {
-        dbRole = "customer"; // 預設值
+        dbRole = "customer"; 
     } else {
         dbRole = dbRole.trim();
     }
     
     String dbName = "未命名會員";
-    String dbGender = "不透露";
-    String dbBirth = "2003/04/23";
-    String dbAddress = "桃園市中壢區200號";
-    String dbPhone = "0912-345-678";
-    String dbEmail = "user@example.com";
+    String dbBirth = "未設定";
+	String dbAddress = "未設定";
+	String dbPhone = "未設定";
+	String dbEmail = "未設定";
+
 
     String urlMembers = "jdbc:mysql://localhost:3306/members?serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false";
     String userDb = "root";
-    String passwordDb = "board"; 
+    String passwordDb = "1234"; 
 
     Connection connMem = null;
     PreparedStatement stmtMem = null;
@@ -50,32 +106,21 @@
         rsMem = stmtMem.executeQuery();
 
         if (rsMem.next()) {
-            dbMemberId = rsMem.getString("id");
-            
-
-            if (session.getAttribute("role") == null) {
-                String rawRole = rsMem.getString("role");
-                if (rawRole != null) {
-                    dbRole = rawRole.trim();
-                }
-            }
-        }
+			dbMemberId = rsMem.getString("id");
+			dbBirth = rsMem.getString("birth");
+			dbAddress = rsMem.getString("address");
+			dbPhone = rsMem.getString("phone");
+			dbEmail = rsMem.getString("email");
+    
+			// 檢查是否有 role
+			if (session.getAttribute("role") == null) {
+				String rawRole = rsMem.getString("role");
+				if (rawRole != null) dbRole = rawRole.trim();
+			}
+		}
         
 
-        if(dbRole.equalsIgnoreCase("admin")) {
-            dbName = "系統管理員 (" + dbMemberId + ")";
-            dbEmail = "admin@medicalsystem.com";
-            dbGender = "男";
-        } else {
-            if(dbMemberId.equalsIgnoreCase("user03")) {
-                dbName = "顧客會員 (user03)";
-                dbEmail = "user03@example.com";
-            } else {
-                dbName = "娜魯灣 娜魯吐 娜魯水 娜魯7-11";
-                dbEmail = "wanyiting@example.com";
-            }
-            dbGender = "女";
-        }
+       
         
     } catch (Exception e) {
         dbName = "會員資料庫讀取失敗：" + e.getMessage();
@@ -85,12 +130,11 @@
         if (connMem != null) connMem.close();
     }
 %>
-<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>會員中心</title>
+  <title>已登入-會員中心</title>
   
 <style>
 * {
@@ -101,7 +145,7 @@
 
 body {
   font-family: 'Noto Sans TC', serif;
-  background-color: #ffe5ec;
+  background-color: #E6F4F3;
   padding: 20px;
 }
 
@@ -358,12 +402,11 @@ h1 {
       <table class="order-table">
         <thead>
           <tr>
-            <th>留言編號</th>
-            <th>訪客姓名</th>
-            <th>E-mail</th>
-            <th>留言主題</th>
-            <th>留言內容</th>
-            <th>留言時間</th>
+            <th>訂單編號</th>
+            <th>會員帳號</th>
+            <th>訂購日期</th>
+            <th>總金額</th>
+            <th>訂單狀態</th>
           </tr>
         </thead>
         <tbody>
@@ -372,41 +415,39 @@ h1 {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connBoard = DriverManager.getConnection(urlBoard, userBoard, passwordBoard);
 
-                String sqlGuest = "SELECT * FROM guestbook ORDER BY GBNO DESC";
-                stmtBoard = connBoard.prepareStatement(sqlGuest);
+                String sqlOrders = "SELECT * FROM orders ORDER BY order_date DESC";
+                stmtBoard = connBoard.prepareStatement(sqlOrders);
                 rsBoard = stmtBoard.executeQuery();
                 
                 boolean hasData = false;
                 while(rsBoard.next()) {
                     hasData = true;
-                    int gbNo = rsBoard.getInt("GBNO");
-                    String gbName = rsBoard.getString("GBName");
-                    String mail = rsBoard.getString("Mail");
-                    String subject = rsBoard.getString("Subject");
-                    String content = rsBoard.getString("Content");
-                    String putDate = rsBoard.getString("Putdate");
+                    String orderId = rsBoard.getString("order_id");
+                    String memberId = rsBoard.getString("member_id");
+                    String orderDate = rsBoard.getString("order_date");
+                    int totalAmount = rsBoard.getInt("total_amount");
+                    String status = rsBoard.getString("status");
         %>
-                    <tr>
-                      <td><%= gbNo %></td>
-                      <td><strong><%= gbName %></strong></td>
-                      <td><%= (mail == null ? "無" : mail) %></td>
-                      <td><%= subject %></td>
-                      <td><%= content %></td>
-                      <td><%= putDate %></td>
-                    </tr>
+                  <tr>
+                    <td><strong><%= orderId %></strong></td>
+                    <td><%= memberId %></td>
+                    <td><%= orderDate %></td>
+                    <td>$<%= java.text.NumberFormat.getNumberInstance().format(totalAmount) %></td>
+                    <td><%= status %></td>
+                  </tr>
         <%
                 }
                 if(!hasData) {
         %>
-                    <tr>
-                      <td colspan="6" style="text-align:center; color:#888;">目前留言板尚無任何資料。</td>
-                    </tr>
+                  <tr>
+                    <td colspan="5" style="text-align:center; color:#888;">目前尚無任何訂單紀錄。</td>
+                  </tr>
         <%
                 }
             } catch(Exception e) {
         %>
                 <tr>
-                  <td colspan="6" style="text-align:center; color:red;">留言板資料庫連線失敗：<%= e.getMessage() %></td>
+                  <td colspan="5" style="text-align:center; color:red;">訂單資料庫連線失敗：<%= e.getMessage() %></td>
                 </tr>
         <%
             } finally {
@@ -424,7 +465,7 @@ h1 {
     <h1>歷史訂單</h1>
     <div class="search-box">
       <div style="background-color: #e6f7ff; padding: 8px; border-radius: 5px; font-size: 14px; color: #0050b3; margin-bottom: 15px;">
-       系統提示：目前辨識登入帳號為「<strong><%= loginId %></strong>」，正在動態撈取該帳號的訂單...
+        系統提示：目前辨識登入帳號為「<strong><%= loginId %></strong>」，正在動態撈取該帳號的訂單...
       </div>
 
       <table class="order-table">
@@ -498,7 +539,6 @@ h1 {
         <div class="member-info">
           <p>帳號：<%= dbMemberId %></p>
           <p>身分權限：<%= dbRole %></p>
-          <p>性別：<%= dbGender %></p>
           <p>生日：<%= dbBirth %></p>
           <p>地址：<%= dbAddress %></p>
           <p>電話：<%= dbPhone %></p>
