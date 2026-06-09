@@ -1,7 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %> 
 
-<!DOCTYPE html>
 <html>
 <head>
     <title>搜尋結果</title>
@@ -9,7 +8,6 @@
 <body>
 
 <%
-    // 取得前端關鍵字
     request.setCharacterEncoding("UTF-8");
     String keyword = request.getParameter("keyword");
 
@@ -27,14 +25,12 @@
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection(url, dbUser, dbPassword);
             
-            //對應 Product_Name 欄位進行模糊查詢
             String sql = "SELECT * FROM Product WHERE Product_Name LIKE ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, "%" + keyword + "%"); 
             
             rs = pstmt.executeQuery();
-            
-            //前端網頁表格
+
             out.print("<table border='1' cellpadding='10' style='border-collapse: collapse; text-align: left;'>");
             out.print("<tr style='background-color: #f2f2f2;'><th>器材編號</th><th>器材名稱</th><th>許可證字號</th><th>規格</th><th>單價</th></tr>");
             
@@ -67,3 +63,5 @@
         out.print("<p>請輸入要搜尋的物品！</p>");
     }
 %>
+</body>
+</html>
