@@ -2,7 +2,7 @@
 <%@ page import="java.util.*,java.sql.*" %>
 <%
     request.setCharacterEncoding("UTF-8");
-
+	
     String loginId = (String) session.getAttribute("id");
     String loginRole = (String) session.getAttribute("role");
 
@@ -17,6 +17,10 @@
     String message = "";
     String regId = request.getParameter("reg_id");
     String regPwd = request.getParameter("reg_password");
+    String regBirth = request.getParameter("reg_birth");
+    String regAddress = request.getParameter("reg_address");
+    String regPhone = request.getParameter("reg_phone");
+    String regEmail = request.getParameter("reg_email");
 
     if (regId != null && regPwd != null && !regId.trim().isEmpty() && !regPwd.trim().isEmpty()) {
         Connection conn = null;
@@ -44,10 +48,14 @@
                 conn.rollback();
             } else {
                 //寫入members，角色一律是customer
-                String memberSql = "INSERT INTO members (id, passwords, role) VALUES (?, ?, 'customer')";
+                String memberSql = "INSERT INTO members (id, passwords, role, birth, address, phone, email) VALUES (?, ?, 'customer', ?, ?, ?, ?)";
                 pstmtMember = conn.prepareStatement(memberSql);
                 pstmtMember.setString(1, regId.trim());
                 pstmtMember.setString(2, regPwd.trim());
+                pstmtMember.setString(3, regBirth);
+                pstmtMember.setString(4, regAddress);
+                pstmtMember.setString(5, regPhone);
+                pstmtMember.setString(6, regEmail);
                 pstmtMember.executeUpdate();
 
                 conn.commit();
@@ -78,7 +86,7 @@
 <style>
 :root {
     --primary-color: #00A49E;      
-    --primary-hover: #008782;       
+    --primary-hover: #008782;        
     --secondary-bg: #E6F4F3;        
     --text-color: #333333;          
     --light-gray: #F8F9FA;          
@@ -232,7 +240,6 @@ body {
     <% } %>
 
     <%
-        //如果已經登入不顯示登入表單，直接顯示登入表單與登出按鈕
         if (loginId != null) {
     %>
         <div class="form-title">會員中心</div>
@@ -249,7 +256,6 @@ body {
         </form>
     <%
         } else { 
-        //尚未登入，顯示登入表單與註冊表單
     %>
         <div id="login-section">
             <div class="form-title">會員登入</div>
@@ -272,11 +278,27 @@ body {
             <form action="login.jsp" method="post">
                 <div class="form-group">
                     <label>設定帳號</label>
-                    <input type="text" name="reg_id" class="form-control" placeholder="請輸入欲註冊的帳號" required>
+                    <input type="text" name="reg_id" class="form-control" placeholder="請輸入帳號" required>
                 </div>
                 <div class="form-group">
                     <label>設定密碼</label>
                     <input type="password" name="reg_password" class="form-control" placeholder="請輸入密碼" required>
+                </div>
+                <div class="form-group">
+                    <label>生日</label>
+                    <input type="date" name="reg_birth" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>住址</label>
+                    <input type="text" name="reg_address" class="form-control" placeholder="請輸入住址" required>
+                </div>
+                <div class="form-group">
+                    <label>電話號碼</label>
+                    <input type="tel" name="reg_phone" class="form-control" placeholder="請輸入電話" required>
+                </div>
+                <div class="form-group">
+                    <label>電子郵件</label>
+                    <input type="email" name="reg_email" class="form-control" placeholder="請輸入有效郵件" required>
                 </div>
                 <button type="submit" class="btn-submit" style="background-color: #008782;">提交註冊</button>
             </form>
@@ -290,7 +312,6 @@ body {
 </div>
 
 <script>
-// 控制「登入」與「註冊」的切換顯示
 function toggleForm(showRegister) {
     const loginSec = document.getElementById('login-section');
     const registerSec = document.getElementById('register-section');
