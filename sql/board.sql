@@ -32,12 +32,12 @@ CREATE TABLE IF NOT EXISTS guestbook (
   Putdate DATE NOT NULL COMMENT '留言時間'
 ); 
 
-#訂單資料
+#orders資料（將部分訂單綁定給一般會員'02'其餘綁給其他帳號）
 INSERT INTO orders (order_id, member_id, order_date, total_amount, status) VALUES
-('KB1768', '02', '2025-11-20', 1500, '待出貨'),
-('KL3978', '02', '2025-06-10', 7430, '已出貨'),
-('KA7217', '02', '2025-12-10', 8733, '待出貨'),
-('BC1038', 'user03', '2025-12-12', 10345, '待出貨');
+('ORDA68F5689', '02', '2025-11-20', 1500, '待出貨'),
+('ORD5478W556', '02', '2025-06-10', 7430, '已出貨'),
+('ORDK786C236', '02', '2025-12-10', 8733, '待出貨'),
+('ORDG568H410', 'user03', '2025-12-12', 10345, '待出貨');
 
 INSERT INTO guestbook (GBName, Mail, Subject, Content, Putdate) VALUES
 ('李曉明', 'ming@gmail.com', 'N95醫療口罩', '出貨速度很快，服務態度良好', '2026-05-27'),
