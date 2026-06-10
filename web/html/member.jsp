@@ -343,16 +343,6 @@ h1 {
     margin: 10px; 
     gap: 20px; 
   }
-  .member-head { 
-    width: 100%; 
-    margin: 0; 
-    display: flex; 
-    justify-content: center; 
-  }
-  .member-head img { 
-    width: 180px; 
-    height: 180px; 
-  }
   .member-info { 
     width: 100%; 
     align-items: center; 
@@ -533,9 +523,6 @@ h1 {
     <div class="box" id="member">
       <h1>會員介面</h1>
       <div class="member-box">
-        <div class="member-head">
-          <img src="../images/93642.jpg" alt="會員頭像">
-        </div>
         <div class="member-info">
           <p>帳號：<%= dbMemberId %></p>
           <p>身分權限：<%= dbRole %></p>
