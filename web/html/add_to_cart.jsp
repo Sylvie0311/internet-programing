@@ -5,67 +5,78 @@
     String buyId = request.getParameter("buy_id");
     String qtyParam = request.getParameter("quantity");
 
-    String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+    String url = "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234"; 
 
     if (buyId != null && !buyId.trim().isEmpty() && qtyParam != null && !qtyParam.trim().isEmpty()) {
         Connection conn = null;
-        PreparedStatement pstmtCheck = null;  
-        PreparedStatement pstmtAction = null; 
-        ResultSet rsCheck = null;
+        PreparedStatement pstmtStock = null;
+        PreparedStatement pstmtCart = null;
+        PreparedStatement pstmtAction = null;
+        ResultSet rsStock = null;
+        ResultSet rsCart = null;
 
         try {
-            // 將這裡的變數名稱統一改為 incomingQuantity
             int incomingQuantity = Integer.parseInt(qtyParam.trim());
-            if(incomingQuantity < 1) incomingQuantity = 1;   // 單次最少 1
-        
+            if(incomingQuantity < 1) incomingQuantity = 1;
 
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection(url, user, password);
 
-            //檢查購物車是否有這個商品
-            String checkSql = "SELECT Quantity FROM shopping_cart WHERE Product_ID = ?";
-            pstmtCheck = conn.prepareStatement(checkSql);
-            pstmtCheck.setString(1, buyId.trim());
-            rsCheck = pstmtCheck.executeQuery();
+            String stockSql = "SELECT Quantity FROM Inventory WHERE Product_ID = ?";
+            pstmtStock = conn.prepareStatement(stockSql);
+            pstmtStock.setString(1, buyId.trim());
+            rsStock = pstmtStock.executeQuery();
+            
+            int maxStock = 0;
+            if (rsStock.next()) {
+                maxStock = rsStock.getInt("Quantity");
+            }
 
-            if (rsCheck.next()) {
-                int currentQuantity = rsCheck.getInt("Quantity");
-                int newQuantity = currentQuantity + incomingQuantity;
-                
-                if(newQuantity > 99) newQuantity = 99;
+           
+            String cartSql = "SELECT Quantity FROM shopping_cart WHERE Product_ID = ?";
+            pstmtCart = conn.prepareStatement(cartSql);
+            pstmtCart.setString(1, buyId.trim());
+            rsCart = pstmtCart.executeQuery();
+            
+            int currentCartQty = 0;
+            if (rsCart.next()) {
+                currentCartQty = rsCart.getInt("Quantity");
+            }
 
+            //  判斷不超過庫存
+            int totalQty = currentCartQty + incomingQuantity;
+            if (totalQty > maxStock) {
+                totalQty = maxStock; 
+            }
+
+            if (rsCart.isBeforeFirst() || currentCartQty > 0) {
                 String updateSql = "UPDATE shopping_cart SET Quantity = ? WHERE Product_ID = ?";
                 pstmtAction = conn.prepareStatement(updateSql);
-                pstmtAction.setInt(1, newQuantity);
+                pstmtAction.setInt(1, totalQty);
                 pstmtAction.setString(2, buyId.trim());
                 pstmtAction.executeUpdate();
             } else {
-
-                if(incomingQuantity > 99) incomingQuantity = 99; 
-                
                 String insertSql = "INSERT INTO shopping_cart (Product_ID, Quantity) VALUES (?, ?)";
                 pstmtAction = conn.prepareStatement(insertSql);
                 pstmtAction.setString(1, buyId.trim());
-                pstmtAction.setInt(2, incomingQuantity);
+                pstmtAction.setInt(2, totalQty);
                 pstmtAction.executeUpdate();
             }
-        } 
-        catch (NumberFormatException nfe) {
+
+        } catch (NumberFormatException nfe) {
             out.print("錯誤：數量必須為數字！");
-        }
-        catch (SQLException sExec) {
-            out.print("資料庫寫入或更新失敗：" + sExec.toString());
-        }
-        finally {
-            if (rsCheck != null) try { rsCheck.close(); } catch(SQLException e){}
-            if (pstmtCheck != null) try { pstmtCheck.close(); } catch(SQLException e){}
-            if (pstmtAction != null) try { pstmtAction.close(); } catch(SQLException e){}
-            if (conn != null) try { conn.close(); } catch(SQLException e){}
+        } catch (SQLException sExec) {
+            out.print("資料庫操作失敗：" + sExec.toString());
+        } finally {
+            if (rsStock != null) rsStock.close();
+            if (rsCart != null) rsCart.close();
+            if (pstmtStock != null) pstmtStock.close();
+            if (pstmtCart != null) pstmtCart.close();
+            if (pstmtAction != null) pstmtAction.close();
+            if (conn != null) conn.close();
         }
     }
-
-    // 加入購物車後導向購物車頁面
     response.sendRedirect("cart.jsp");
 %>
