@@ -6,8 +6,9 @@
 
     String dbProductName = "";
     String dbSpecification = "";
-    String dbProductIntro = "";
+    String dbProductIntro = ""; 
     int dbUnitPrice = 0;
+    int dbStock = 0;
 
     Connection conn = null;
     PreparedStatement pstmt = null;
@@ -15,12 +16,16 @@
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+        String url = "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
         String user = "root";
         String password = "1234";
         conn = DriverManager.getConnection(url, user, password);
 
-        String sql = "SELECT Product_Name, Specification, Unit_Price FROM Product WHERE Product_ID=?";
+        String sql = "SELECT p.Product_Name, p.Specification, p.Unit_Price, p.Product_introduction, i.Quantity " +
+                     "FROM Product p " +
+                     "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID " +
+                     "WHERE p.Product_ID = ?";
+                     
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, productId);
         rs = pstmt.executeQuery();
@@ -29,7 +34,13 @@
             dbProductName = rs.getString("Product_Name");
             dbSpecification = rs.getString("Specification");
             dbUnitPrice = rs.getInt("Unit_Price");
-            dbProductIntro = "尚無商品介紹"; 
+            
+            dbProductIntro = rs.getString("Product_introduction"); 
+            if (dbProductIntro == null || dbProductIntro.trim().isEmpty()) {
+                dbProductIntro = "尚無商品介紹"; 
+            }
+            
+            dbStock = rs.getInt("Quantity");
         }
         
     } catch (Exception e) {
@@ -209,6 +220,14 @@ header img:hover {
     background-color: var(--primary-hover);
     box-shadow: 0 6px 18px rgba(0, 164, 158, 0.25);
 }
+
+.buy-button button:disabled {
+    background-color: #CCCCCC;
+    color: #666666;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 .comment {
     max-width: 1200px;
     margin: 40px auto 80px auto;
@@ -298,48 +317,73 @@ hr {
         
         <div class="product_container2">
             <div class="product-name"><p><%= dbProductName %></p></div>
-            <div class="introduce"><p><strong>規格：<%= dbSpecification %></strong><br><br><%= dbProductIntro %></p></div>
+            
+            <div class="introduce">
+                <p><strong>規格：<%= dbSpecification %></strong><br><br><%= dbProductIntro %></p>
+                <p style="font-size: 14px; color: #888888; margin-top: 10px;">庫存剩餘：<%= dbStock %> 件</p>
+            </div>
+            
             <div class="price"><p>$<%= dbUnitPrice %></p></div>
             <div class="amount">
                 <p>數量:</p>
                 <div class="quantity-group">
                     <button type="button" id="btn-minus">−</button>
-                    <input type="number" id="quantity-input" name="quantity" min="1" max="99" value="1">
+                    <input type="number" id="quantity-input" name="quantity" min="1" max="<%= dbStock %>" value="<%= dbStock > 0 ? 1 : 0 %>">
                     <button type="button" id="btn-add">+</button>
                 </div>
             </div>
             <div class="buy-button">
                 <form action="add_to_cart.jsp" method="get">
                     <input type="hidden" name="buy_id" value="<%= productId %>">
-                    <input type="hidden" id="buy-qty" name="quantity" value="1">
-                    <button type="submit">🛒 加入購物車</button>
+                    <input type="hidden" id="buy-qty" name="quantity" value="<%= dbStock > 0 ? 1 : 0 %>">
+                    
+                    <button type="submit" id="btn-submit-cart" <%= dbStock <= 0 ? "disabled" : "" %>>
+                        <%= dbStock > 0 ? "🛒 加入購物車" : "❌ 已無庫存" %>
+                    </button>
                 </form>
             </div>
         </div>
     </div>
+    
     <script>
         const minusBtn = document.getElementById("btn-minus");
         const addBtn = document.getElementById("btn-add");
         const qtyInput = document.getElementById("quantity-input");
         const buyQty = document.getElementById("buy-qty");
+        
+        const maxStock = <%= dbStock %>;
+
         minusBtn.addEventListener("click", () => {
-            let current = parseInt(qtyInput.value);
+            let current = parseInt(qtyInput.value) || 0;
             if(current > 1) {
                 qtyInput.value = current - 1;
                 buyQty.value = qtyInput.value;
             }
         });
+
         addBtn.addEventListener("click", () => {
-            let current = parseInt(qtyInput.value);
-            if(current < 99) {
+            let current = parseInt(qtyInput.value) || 0;
+
+            if(current < maxStock) {
                 qtyInput.value = current + 1;
                 buyQty.value = qtyInput.value;
+            } else {
+                alert("抱歉，已達該商品購買上限（庫存不足）！");
             }
         });
+
         qtyInput.addEventListener("input", () => {
             let current = parseInt(qtyInput.value);
-            if(current < 1) qtyInput.value = 1;
-            if(current > 99) qtyInput.value = 99;
+            
+
+            if (isNaN(current) || current < 1) {
+                qtyInput.value = maxStock > 0 ? 1 : 0;
+            }
+
+            else if (current > maxStock) {
+                alert("輸入數量超過庫存上限！");
+                qtyInput.value = maxStock;
+            }
             buyQty.value = qtyInput.value;
         });
     </script>
