@@ -1,13 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%
-    String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+    String url = "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234";
 
     String action = request.getParameter("action");
     String pIdParam = request.getParameter("p_id");
 
+    //增加、減少、刪除
     if (action != null && pIdParam != null) {
         Connection connAction = null;
         PreparedStatement pstmtAction = null;
@@ -16,10 +17,17 @@
             connAction = DriverManager.getConnection(url, user, password);
 
             if ("add".equals(action)) {
-                String sql = "UPDATE shopping_cart SET Quantity = Quantity + 1 WHERE Product_ID=?";
-                pstmtAction = connAction.prepareStatement(sql);
+                String checkSql = "SELECT c.Quantity AS CartQty, i.Quantity AS MaxStock FROM shopping_cart c JOIN Inventory i ON c.Product_ID = i.Product_ID WHERE c.Product_ID = ?";
+                pstmtAction = connAction.prepareStatement(checkSql);
                 pstmtAction.setString(1, pIdParam);
-                pstmtAction.executeUpdate();
+                ResultSet rsCheck = pstmtAction.executeQuery();
+                if (rsCheck.next() && rsCheck.getInt("CartQty") < rsCheck.getInt("MaxStock")) {
+                    String sql = "UPDATE shopping_cart SET Quantity = Quantity + 1 WHERE Product_ID=?";
+                    PreparedStatement pstmtUpdate = connAction.prepareStatement(sql);
+                    pstmtUpdate.setString(1, pIdParam);
+                    pstmtUpdate.executeUpdate();
+                    pstmtUpdate.close();
+                }
             } else if ("minus".equals(action)) {
                 String sql = "UPDATE shopping_cart SET Quantity = Quantity - 1 WHERE Product_ID=? AND Quantity > 1";
                 pstmtAction = connAction.prepareStatement(sql);
@@ -31,12 +39,11 @@
                 pstmtAction.setString(1, pIdParam);
                 pstmtAction.executeUpdate();
             }
-
             response.sendRedirect("cart.jsp");
             return;
         } finally {
-            if (pstmtAction != null) try { pstmtAction.close(); } catch (SQLException e) {}
-            if (connAction != null) try { connAction.close(); } catch (SQLException e) {}
+            if (pstmtAction != null) pstmtAction.close();
+            if (connAction != null) connAction.close();
         }
     }
 %>
@@ -112,6 +119,13 @@
 		color: var(--primary-color);
 		background-color: #E6F4F3;
 	}
+    .qty-btn.disabled {
+        background-color: #EEEEEE;
+        color: #CCCCCC;
+        border-color: #E5E5E5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
 	.qty-text {
 		display: inline-block;
 		width: 40px;
@@ -166,117 +180,105 @@
 		border-radius: 6px;
 		text-decoration: none;
 		font-weight: 500;
-		transition: background-color 0.2s;
+		transition: background-color: 0.2s;
 	}
 	.btn-primary:hover {
 		background-color: var(--primary-hover);
 	}
 </style>
-<script type="text/javascript">
-	function confirmDelete(productName, productId) {
-		var agree = confirm("您確定要將「" + productName + "」從購物車中刪除嗎？");
-		if (agree) {
-			window.location.href = "cart.jsp?action=delete&p_id=" + productId;
-		}
-	}
+<script>
+    function confirmDelete(name, id) {
+        if (confirm("確定刪除 " + name + "？")) window.location.href = "cart.jsp?action=delete&p_id=" + id;
+    }
 </script>
 </head>
 <body>
 
-	<div class="cart-container">
-		<h2>🛒 我的購物車</h2>
-	
-		<table>
-			<thead>
-				<tr>
-					<th>商品編號</th>
-					<th>商品名稱</th>
-					<th>單價</th>
-					<th>數量</th>
-					<th>小計</th>
-					<th>操作</th>
-				</tr>
-			</thead>
-			<tbody>
-			<%
-				Connection conn = null;
-				PreparedStatement pstmtCart = null;
-				ResultSet rs = null;
-				int totalSum = 0; 
-				boolean hasItems = false; 
-	
-				try {
-					Class.forName("com.mysql.cj.jdbc.Driver");
-					conn = DriverManager.getConnection(url, user, password);
-	
-					String sql = "SELECT Product_ID, Quantity FROM shopping_cart";
-					pstmtCart = conn.prepareStatement(sql);
-					rs = pstmtCart.executeQuery();
-	
-					while (rs.next()) {
-						hasItems = true;
-						String pId = rs.getString("Product_ID");
-						int qty = rs.getInt("Quantity");
-	
-						String pName = "";
-						int price = 0;
-	
-						PreparedStatement pstmtDetail = conn.prepareStatement("SELECT Product_Name, Unit_Price FROM Product WHERE Product_ID=?");
-						pstmtDetail.setString(1, pId);
-						ResultSet rsDetail = pstmtDetail.executeQuery();
-						if (rsDetail.next()) {
-							pName = rsDetail.getString("Product_Name");
-							price = rsDetail.getInt("Unit_Price");
-						}
-						rsDetail.close();
-						pstmtDetail.close();
-	
-						int subTotal = price * qty; 
-						totalSum += subTotal;        
-			%>
-						<tr>
-							<td><%= pId %></td>
-							<td style="text-align: left;"><%= pName %></td>
-							<td>$<%= price %> 元</td>
-							<td>
-								<a href="cart.jsp?action=minus&p_id=<%= pId %>" class="qty-btn">−</a>
-								<strong class="qty-text"><%= qty %></strong>
-								<a href="cart.jsp?action=add&p_id=<%= pId %>" class="qty-btn">+</a>
-							</td>
-							<td style="color: var(--price-color); font-weight: bold;">$<%= subTotal %> 元</td>
-							<td>
-								<button type="button" class="delete-btn" onclick="confirmDelete('<%= pName.replace("'", "\\'") %>', '<%= pId %>')">🗑️ 刪除</button>
-							</td>
-						</tr>
-			<%
-					}
-				} catch (SQLException sExec) {
-					out.print("<tr><td colspan='6' style='color:red;'>購物車讀取失敗：" + sExec.toString() + "</td></tr>");
-				} finally {
-					if (rs != null) try { rs.close(); } catch (SQLException e) {}
-					if (pstmtCart != null) try { pstmtCart.close(); } catch (SQLException e) {}
-					if (conn != null) try { conn.close(); } catch (SQLException e) {}
-				}
-			%>
-			</tbody>
-		</table>
-	
-		<% if (!hasItems) { %>
-			<div class="empty-msg">您的購物車目前是空的喔！快去挑選一些需要的醫療器材吧！</div>
-		<% } else { %>
-			<div class="total-box">
-				結帳總金額： $<%= totalSum %> 元
-			</div>
-		<% } %>
-	
-		<div class="actions-box">
-			<a href="../index.jsp" class="btn-secondary">⬅ 繼續購物</a>
-			
-			<% if (hasItems) { %>
-				<a href="checkout.jsp" class="btn-primary">確認結帳並付款 ➡</a>
-			<% } %>
-		</div>
-	</div>
-	
-	</body>
-	</html>
+<div class="cart-container">
+    <h2>🛒 我的購物車</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>商品編號</th>
+                <th>商品名稱</th>
+                <th>單價</th>
+                <th>數量</th>
+                <th>小計</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+        <%
+            Connection conn = null;
+            PreparedStatement pstmt = null;
+            ResultSet rs = null;
+            int totalSum = 0;
+            boolean hasItems = false;
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                conn = DriverManager.getConnection(url, user, password);
+                
+                String sql = "SELECT c.Product_ID, c.Quantity AS CartQty, p.Product_Name, p.Unit_Price, i.Quantity AS Stock " +
+                             "FROM shopping_cart c " +
+                             "JOIN Product p ON c.Product_ID = p.Product_ID " +
+                             "LEFT JOIN Inventory i ON c.Product_ID = i.Product_ID";
+                pstmt = conn.prepareStatement(sql);
+                rs = pstmt.executeQuery();
+
+                while(rs.next()) {
+                    hasItems = true;
+                    String pId = rs.getString("Product_ID");
+                    String pName = rs.getString("Product_Name");
+                    int price = rs.getInt("Unit_Price");
+                    int qty = rs.getInt("CartQty");
+                    int stock = rs.getInt("Stock");
+                    int subTotal = price * qty;
+                    totalSum += subTotal;
+        %>
+                    <tr>
+                        <td><%= pId %></td>
+                        <td style="text-align: left;">
+                            <%= pName %><br>
+                            <span style="font-size: 12px; color: #999;">(庫存剩餘：<%= stock %> 件)</span>
+                        </td>
+                        <td>$<%= price %> 元</td>
+                        <td>
+                            <a href="cart.jsp?action=minus&p_id=<%= pId %>" class="qty-btn">−</a>
+                            <strong class="qty-text"><%= qty %></strong>
+                            <a href="cart.jsp?action=add&p_id=<%= pId %>" class="qty-btn <%= qty >= stock ? "disabled" : "" %>">+</a>
+                        </td>
+                        <td style="color: var(--price-color); font-weight: bold;">$<%= subTotal %> 元</td>
+                        <td>
+                            <button type="button" class="delete-btn" onclick="confirmDelete('<%= pName.replace("'", "\\'") %>', '<%= pId %>')">🗑️ 刪除</button>
+                        </td>
+                    </tr>
+        <%
+                }
+            } catch (SQLException sExec) {
+                out.print("<tr><td colspan='6' style='color:red;'>購物車讀取失敗：" + sExec.toString() + "</td></tr>");
+            } finally {
+                if (rs != null) try { rs.close(); } catch (SQLException e) {}
+                if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+                if (conn != null) try { conn.close(); } catch (SQLException e) {}
+            }
+        %>
+        </tbody>
+    </table>
+
+    <% if (!hasItems) { %>
+        <div class="empty-msg">您的購物車目前是空的喔！快去挑選一些需要的醫療器材吧！</div>
+    <% } else { %>
+        <div class="total-box">
+            結帳總金額： $<%= totalSum %> 元
+        </div>
+    <% } %>
+
+    <div class="actions-box">
+        <a href="../index.jsp" class="btn-secondary">⬅ 繼續購物</a>
+        <% if (hasItems) { %>
+            <a href="checkout.jsp" class="btn-primary">確認結帳並付款 ➡</a>
+        <% } %>
+    </div>
+</div>
+</body>
+</html>
