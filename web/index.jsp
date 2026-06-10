@@ -586,7 +586,6 @@ footer {
         
                 try {
                     Class.forName("com.mysql.cj.jdbc.Driver");
-                    // ✅ 修正資料庫名稱為 cart
                     String url = "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
                     String user = "root";
                     String password = "1234";
@@ -680,7 +679,15 @@ footer {
                         </div>
             <%
                     }
-                    
+                    if (hasResult && keyword != null && !keyword.trim().isEmpty()) {
+                        %>
+                            <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #666;">
+                                <a href="index.jsp" style="display: inline-block; margin-top: 15px; color: var(--primary-color); text-decoration: underline;">返回查看所有商品
+                                </a>
+                            </div>
+                        <%
+                        }
+                        
                     if (!hasResult) {
             %>
                         <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
