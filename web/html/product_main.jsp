@@ -9,7 +9,8 @@
     String dbProductIntro = ""; 
     int dbUnitPrice = 0;
     int dbStock = 0;
-
+	String dbImagePath = "";
+	
     Connection conn = null;
     PreparedStatement pstmt = null;
     ResultSet rs = null;
@@ -21,10 +22,10 @@
         String password = "1234";
         conn = DriverManager.getConnection(url, user, password);
 
-        String sql = "SELECT p.Product_Name, p.Specification, p.Unit_Price, p.Product_introduction, i.Quantity " +
-                     "FROM Product p " +
-                     "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID " +
-                     "WHERE p.Product_ID = ?";
+        String sql = "SELECT p.Product_Name, p.Specification, p.Unit_Price, p.Product_introduction, i.Quantity, p.Image_Path " +
+                 "FROM Product p " +
+                 "LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID " +
+                 "WHERE p.Product_ID = ?";
                      
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, productId);
@@ -41,6 +42,7 @@
             }
             
             dbStock = rs.getInt("Quantity");
+			dbImagePath = rs.getString("Image_Path");
         }
         
     } catch (Exception e) {
@@ -311,7 +313,8 @@ hr {
     <div class="product-container">
         <div class="product_container1">
             <div class="product-picture">
-                <img src="../images/<%= productId %>.jpg" onerror="this.onerror=null; this.src='../images/default.jpg';" alt="商品圖片">
+                <img src="../images/<%= productId %>.jpg?v=<%= System.currentTimeMillis() %>" 
+				 onerror="this.onerror=null; this.src='../images/default.jpg';" alt="商品圖片">
             </div>
         </div>
         
@@ -338,7 +341,7 @@ hr {
                     <input type="hidden" id="buy-qty" name="quantity" value="<%= dbStock > 0 ? 1 : 0 %>">
                     
                     <button type="submit" id="btn-submit-cart" <%= dbStock <= 0 ? "disabled" : "" %>>
-                        <%= dbStock > 0 ? "🛒 加入購物車" : "❌ 已無庫存" %>
+                        <%= dbStock > 0 ? "加入購物車" : "已無庫存" %>
                     </button>
                 </form>
             </div>
