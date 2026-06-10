@@ -1,4 +1,3 @@
-<%@ page import="java.sql.*" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <html>
 <head>
@@ -6,7 +5,7 @@
     <style>
         :root {
             --primary-color: #00A49E;      
-            --primary-hover: #008782;       
+            --primary-hover: #008782;        
             --secondary-bg: #E6F4F3;        
             --text-color: #333333;          
             --border-color: #E5E5E5;        
@@ -46,7 +45,7 @@
             font-weight: 500;
         }
 
-        input[type="text"], input[type="date"] {
+        input[type="text"], input[type="date"], input[type="file"] {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--border-color);
@@ -91,94 +90,20 @@
     </style>
 </head>
 <body>
-<%
-    request.setCharacterEncoding("UTF-8");
-
-    String id = request.getParameter("Product_ID");
-    String name = request.getParameter("Product_Name");
-    String license = request.getParameter("License_No");
-    String spec = request.getParameter("Specification");
-    String price = request.getParameter("Unit_Price");
-    String intro = request.getParameter("Product_introduction");
-    String stock = request.getParameter("Stock_Quantity");
-
-    if (id != null && name != null && spec != null && price != null && stock != null &&
-        !id.isEmpty() && !name.isEmpty() && !spec.isEmpty() && !price.isEmpty() && !stock.isEmpty()) {
-        Connection con = null;
-        PreparedStatement pstmtCheck = null;
-        PreparedStatement pstmtProduct = null;
-        PreparedStatement pstmtInventory = null;
-        ResultSet rsCheck = null;
-        try {
-            int unitPrice = Integer.parseInt(price);
-            int stockQty = Integer.parseInt(stock);
-
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
-                "root", "1234");
-
-            // 檢查商品編號是否已存在
-            String sqlCheck = "SELECT COUNT(*) FROM Product WHERE Product_ID=?";
-            pstmtCheck = con.prepareStatement(sqlCheck);
-            pstmtCheck.setString(1, id);
-            rsCheck = pstmtCheck.executeQuery();
-            rsCheck.next();
-            int count = rsCheck.getInt(1);
-
-            if(count > 0) {
-                out.println("<h3 style='color:red;'>錯誤：商品編號 " + id + " 已存在，請使用其他編號！</h3>");
-                out.println("<a href='add_product.jsp' class='btn-back'>返回新增商品</a>");
-            } else {
-                // 新增商品
-                String sqlProduct = "INSERT INTO Product (Product_ID, Product_Name, License_No, Specification, Unit_Price, Product_introduction) VALUES (?, ?, ?, ?, ?, ?)";
-                pstmtProduct = con.prepareStatement(sqlProduct);
-                pstmtProduct.setString(1, id);
-                pstmtProduct.setString(2, name);
-                pstmtProduct.setString(3, license);
-                pstmtProduct.setString(4, spec);
-                pstmtProduct.setInt(5, unitPrice);
-                pstmtProduct.setString(6, intro);
-
-                int rowsProduct = pstmtProduct.executeUpdate();
-
-                if (rowsProduct > 0) {
-                    // 新增庫存 (只存 Product_ID 與 Quantity)
-                    String sqlInventory = "INSERT INTO Inventory (Product_ID, Quantity) VALUES (?, ?)";
-                    pstmtInventory = con.prepareStatement(sqlInventory);
-                    pstmtInventory.setString(1, id);
-                    pstmtInventory.setInt(2, stockQty);
-                    pstmtInventory.executeUpdate();
-
-                    out.println("<h3 style='color:green;'>商品與庫存新增成功！</h3>");
-                    out.println("<a href='product_list.jsp' class='btn-back'>查看商品列表</a>");
-                } else {
-                    out.println("<h3 style='color:red;'>新增商品失敗！</h3>");
-                }
-            }
-        } catch(NumberFormatException nfe) {
-            out.println("<h3 style='color:red;'>錯誤：單價與庫存必須為數字！</h3>");
-        } catch(Exception e) {
-            out.println("<h3 style='color:red;'>錯誤：" + e.getMessage() + "</h3>");
-        } finally {
-            if (rsCheck != null) try { rsCheck.close(); } catch(SQLException e){}
-            if (pstmtCheck != null) try { pstmtCheck.close(); } catch(SQLException e){}
-            if (pstmtProduct != null) try { pstmtProduct.close(); } catch(SQLException e){}
-            if (pstmtInventory != null) try { pstmtInventory.close(); } catch(SQLException e){}
-            if (con != null) try { con.close(); } catch(SQLException e){}
-        }
-    } else {
-%>
     <h2>新增商品</h2>
     <div class="card">
-        <form action="add_product.jsp" method="post">
+        <form action="add_product_process.jsp" method="post" enctype="multipart/form-data">
+            <div class="form-row">
+                <label>商品圖片 (限 .jpg):</label>
+                <input type="file" name="Product_Image" accept=".jpg" required>
+            </div>
             <div class="form-row">
                 <label>商品編號:</label>
-                <input type="text" name="Product_ID">
+                <input type="text" name="Product_ID" required>
             </div>
             <div class="form-row">
                 <label>商品名稱:</label>
-                <input type="text" name="Product_Name">
+                <input type="text" name="Product_Name" required>
             </div>
             <div class="form-row">
                 <label>許可證號:</label>
@@ -190,7 +115,7 @@
             </div>
             <div class="form-row">
                 <label>單價:</label>
-                <input type="text" name="Unit_Price">
+                <input type="text" name="Unit_Price" required>
             </div>
             <div class="form-row">
                 <label>商品介紹:</label>
@@ -198,14 +123,11 @@
             </div>
             <div class="form-row">
                 <label>庫存數量:</label>
-                <input type="text" name="Stock_Quantity">
+                <input type="text" name="Stock_Quantity" required>
             </div>
             <input type="submit" value="新增商品" class="btn-submit">
         </form>
         <a href="product_list.jsp" class="btn-back">返回商品列表</a>
     </div>
-<%
-    }
-%>
 </body>
 </html>
