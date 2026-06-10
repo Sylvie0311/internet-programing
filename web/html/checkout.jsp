@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*, java.util.*, java.time.LocalDate" %>
 <%
-    String urlCart = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+    String urlCart = "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String urlBoard = "jdbc:mysql://localhost:3306/board?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
     String user = "root";
     String password = "1234"; 
