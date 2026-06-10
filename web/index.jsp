@@ -699,7 +699,6 @@ footer {
                         int unitPrice = rsData.getInt("Unit_Price");
                         String spec = rsData.getString("Specification");
                         int stock = rsData.getInt("Stock_Quantity"); 
-                        
                         String imgPath = "images/" + productId + ".jpg"; 
             %>
                         <div class="product">
