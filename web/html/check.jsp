@@ -21,6 +21,29 @@ if (request.getParameter("id")!=null && !request.getParameter("id").equals("")
         session.setAttribute("id", rs.getString("id"));
         session.setAttribute("role", rs.getString("role")); 
 
+        String consent = null;
+        if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies()) {
+                if ("cookie_consent".equals(c.getName())) {
+                    consent = c.getValue();
+                }
+            }
+        }
+
+        if ("accepted".equals(consent)) {
+            Cookie loginCookie = new Cookie("login_user", rs.getString("id"));
+            loginCookie.setMaxAge(60*60*24); // 一天
+            loginCookie.setHttpOnly(true);
+            loginCookie.setSecure(true);
+            response.addCookie(loginCookie);
+
+            Cookie roleCookie = new Cookie("user_role", rs.getString("role"));
+            roleCookie.setMaxAge(60*60*24);
+            roleCookie.setHttpOnly(true);
+            roleCookie.setSecure(true);
+            response.addCookie(roleCookie);
+        }
+
         con.close();
         response.sendRedirect("user.jsp");
     } else {

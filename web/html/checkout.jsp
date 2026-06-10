@@ -16,7 +16,6 @@
         connCart = DriverManager.getConnection(urlCart, user, password);
         connBoard = DriverManager.getConnection(urlBoard, user, password);
 
-
         String sqlGetCart = "SELECT sc.Product_ID, sc.Quantity, p.Unit_Price FROM shopping_cart sc JOIN Product p ON sc.Product_ID = p.Product_ID";
         pstmt = connCart.prepareStatement(sqlGetCart);
         rs = pstmt.executeQuery();
@@ -60,9 +59,20 @@
             pstmtUpdateStock.close();
 
             connCart.createStatement().executeUpdate("DELETE FROM shopping_cart");
+
+            if (request.getCookies() != null) {
+                for (Cookie c : request.getCookies()) {
+                    if (c.getName().startsWith("cart_item_")) {
+                        c.setValue("");
+                        c.setMaxAge(0);    
+                        c.setPath("/");    
+                        response.addCookie(c);
+                    }
+                }
+            }
         }
 
-        out.println("<script>alert('結帳成功！訂單已建立。'); window.location.href='member.jsp';</script>");
+        out.println("<script>alert('結帳成功！訂單已建立，購物車已清空。'); window.location.href='member.jsp';</script>");
     } catch (Exception e) {
         out.println("<script>alert('結帳處理失敗：" + e.getMessage().replace("'", "\\'") + "'); window.location.href='cart.jsp';</script>");
     } finally {

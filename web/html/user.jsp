@@ -219,6 +219,29 @@ if (session.getAttribute("id")!=null){
     con.close();
 
     String role = (String)session.getAttribute("role");
+
+    String consent = null;
+    if (request.getCookies() != null) {
+        for (Cookie c : request.getCookies()) {
+            if ("cookie_consent".equals(c.getName())) {
+                consent = c.getValue();
+            }
+        }
+    }
+
+    if ("accepted".equals(consent)) {
+        Cookie userCookie = new Cookie("login_user", id);
+        userCookie.setMaxAge(60*60*24); // 一天
+        userCookie.setHttpOnly(true);   // 防止 JS 存取
+        userCookie.setSecure(true);     // 僅在 HTTPS 下傳送
+        response.addCookie(userCookie);
+
+        Cookie roleCookie = new Cookie("user_role", role != null ? role : "member");
+        roleCookie.setMaxAge(60*60*24);
+        roleCookie.setHttpOnly(true);
+        roleCookie.setSecure(true);
+        response.addCookie(roleCookie);
+    }
 %>
     <main class="container">
     <section class="card">

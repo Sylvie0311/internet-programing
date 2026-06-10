@@ -193,7 +193,6 @@
 </script>
 </head>
 <body>
-
 <div class="cart-container">
     <h2>🛒 我的購物車</h2>
     <table>
@@ -219,9 +218,9 @@
                 conn = DriverManager.getConnection(url, user, password);
                 
                 String sql = "SELECT c.Product_ID, c.Quantity AS CartQty, p.Product_Name, p.Unit_Price, i.Quantity AS Stock " +
-                             "FROM shopping_cart c " +
-                             "JOIN Product p ON c.Product_ID = p.Product_ID " +
-                             "LEFT JOIN Inventory i ON c.Product_ID = i.Product_ID";
+                                "FROM shopping_cart c " +
+                                "JOIN Product p ON c.Product_ID = p.Product_ID " +
+                                "LEFT JOIN Inventory i ON c.Product_ID = i.Product_ID";
                 pstmt = conn.prepareStatement(sql);
                 rs = pstmt.executeQuery();
 
@@ -234,6 +233,23 @@
                     int stock = rs.getInt("Stock");
                     int subTotal = price * qty;
                     totalSum += subTotal;
+
+                    String consent = null;
+                    if (request.getCookies() != null) {
+                        for (Cookie c : request.getCookies()) {
+                            if ("cookie_consent".equals(c.getName())) {
+                                consent = c.getValue();
+                            }
+                        }
+                    }
+                    if ("accepted".equals(consent)) {
+                        Cookie cartCookie = new Cookie("cart_item_" + pId, String.valueOf(qty));
+                        cartCookie.setMaxAge(60*60*24*7); // 七天
+                        cartCookie.setHttpOnly(true);
+                        cartCookie.setSecure(true);
+                        cartCookie.setPath("/"); 
+                        response.addCookie(cartCookie);
+                    }
         %>
                     <tr>
                         <td><%= pId %></td>
@@ -280,5 +296,5 @@
         <% } %>
     </div>
 </div>
-</body>
+</body>    
 </html>

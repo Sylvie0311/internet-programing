@@ -486,12 +486,69 @@ footer {
         margin-bottom: 25px;
     }
 }
+#cookie-banner {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #f8f9fa;
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid #ccc;
+    font-size: 14px;
+    z-index: 9999;
+}
+#cookie-banner a {
+    color: #00A49E;
+    text-decoration: underline;
+}
+#cookie-banner button {
+    margin-left: 10px;
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+.btn-accept {
+    background-color: #00A49E;
+    color: #fff;
+}
+.btn-reject {
+    background-color: #ccc;
+    color: #333;
+}
 </style>
 </head>
 <body>
     <header>
         <h1 class="site-title">MedEquip Mart</h1>
     </header>
+
+     <!-- Cookie Banner -->
+     <div id="cookie-banner">
+        本網站使用 Cookie 以提升使用體驗，並可能涉及個人資料處理。請閱讀
+        <a href="html/privacy.jsp">隱私政策</a>。
+        <button class="btn-accept" onclick="acceptCookies()">同意</button>
+        <button class="btn-reject" onclick="rejectCookies()">拒絕</button>
+    </div>
+
+    <script>
+    function acceptCookies() {
+        document.cookie = "cookie_consent=accepted; path=/; max-age=" + (60*60*24*365);
+        document.getElementById("cookie-banner").style.display = "none";
+    }
+    function rejectCookies() {
+        document.cookie = "cookie_consent=rejected; path=/; max-age=" + (60*60*24*365);
+        document.getElementById("cookie-banner").style.display = "none";
+    }
+
+    // 檢查是否已經有 Cookie 同意紀錄
+    window.onload = function() {
+        if (document.cookie.indexOf("cookie_consent=") !== -1) {
+            document.getElementById("cookie-banner").style.display = "none";
+        }
+    }
+    </script>
 
     <nav> 
         <div class="nav-left">
