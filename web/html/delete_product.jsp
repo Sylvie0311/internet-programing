@@ -95,10 +95,10 @@
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
+                "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
                 "root", "1234");
 
-            // 先刪除 invoice_detail
+            // 先刪除 Invoice_Detail
             String sqlDetail = "DELETE FROM Invoice_Detail WHERE Product_ID=?";
             pstmtDetail = con.prepareStatement(sqlDetail);
             pstmtDetail.setString(1, id);

@@ -106,8 +106,10 @@ String id = request.getParameter("Product_ID");
 if(request.getParameter("Product_Name") != null) {
     // 更新商品
     String name = request.getParameter("Product_Name");
+    String license = request.getParameter("License_No");
     String spec = request.getParameter("Specification");
     String price = request.getParameter("Unit_Price");
+    String intro = request.getParameter("Product_introduction");
     String stock = request.getParameter("Stock_Quantity");
 
     Connection con = null;
@@ -119,16 +121,18 @@ if(request.getParameter("Product_Name") != null) {
 
         Class.forName("com.mysql.cj.jdbc.Driver");
         con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
+            "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
             "root", "1234");
 
         // 更新商品資料
-        String sqlProduct = "UPDATE Product SET Product_Name=?, Specification=?, Unit_Price=? WHERE Product_ID=?";
+        String sqlProduct = "UPDATE Product SET Product_Name=?, License_No=?, Specification=?, Unit_Price=?, Product_introduction=? WHERE Product_ID=?";
         pstmtProduct = con.prepareStatement(sqlProduct);
         pstmtProduct.setString(1, name);
-        pstmtProduct.setString(2, spec);
-        pstmtProduct.setInt(3, unitPrice);
-        pstmtProduct.setString(4, id);
+        pstmtProduct.setString(2, license);
+        pstmtProduct.setString(3, spec);
+        pstmtProduct.setInt(4, unitPrice);
+        pstmtProduct.setString(5, intro);
+        pstmtProduct.setString(6, id);
         int rowsProduct = pstmtProduct.executeUpdate();
 
         // 更新庫存資料
@@ -164,10 +168,10 @@ if(request.getParameter("Product_Name") != null) {
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
         con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
+            "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
             "root", "1234");
 
-        String sql = "SELECT p.Product_ID, p.Product_Name, p.Specification, p.Unit_Price, " +
+        String sql = "SELECT p.Product_ID, p.Product_Name, p.License_No, p.Specification, p.Unit_Price, p.Product_introduction, " +
                      "IFNULL(i.Quantity,0) AS Stock_Quantity " +
                      "FROM Product p LEFT JOIN Inventory i ON p.Product_ID=i.Product_ID WHERE p.Product_ID=?";
         pstmt = con.prepareStatement(sql);
@@ -185,12 +189,20 @@ if(request.getParameter("Product_Name") != null) {
                     <input type="text" name="Product_Name" value="<%=rs.getString("Product_Name")%>">
                 </div>
                 <div class="form-row">
+                    <label>許可證號:</label>
+                    <input type="text" name="License_No" value="<%=rs.getString("License_No")%>">
+                </div>
+                <div class="form-row">
                     <label>規格:</label>
                     <input type="text" name="Specification" value="<%=rs.getString("Specification")%>">
                 </div>
                 <div class="form-row">
                     <label>單價:</label>
                     <input type="text" name="Unit_Price" value="<%=rs.getInt("Unit_Price")%>">
+                </div>
+                <div class="form-row">
+                    <label>商品介紹:</label>
+                    <input type="text" name="Product_introduction" value="<%=rs.getString("Product_introduction")%>">
                 </div>
                 <div class="form-row">
                     <label>庫存數量:</label>

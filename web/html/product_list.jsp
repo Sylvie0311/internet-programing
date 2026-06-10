@@ -9,10 +9,8 @@
             --primary-hover: #008782;       
             --secondary-bg: #E6F4F3;        
             --text-color: #333333;          
-            --light-gray: #F8F9FA;          
             --border-color: #E5E5E5;        
             --price-color: #FF5A5F;         
-            --morandi-gray-btn: #F0F8F7;    
         }
 
         body {
@@ -27,16 +25,6 @@
             text-align: center;
             color: var(--primary-color);
             margin-bottom: 20px;
-        }
-
-        a {
-            text-decoration: none;
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-
-        a:hover {
-            color: var(--primary-hover);
         }
 
         table {
@@ -66,53 +54,43 @@
         }
 
         .btn {
-            padding: 6px 12px;
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
             border-radius: 6px;
             font-size: 14px;
-            cursor: pointer;
+            font-weight: 500;
             text-decoration: none;
+            transition: all 0.25s ease;
         }
 
-        .btn-edit {
+        .btn-add {
             background-color: var(--primary-color);
             color: #fff;
-            margin-right: 5px;
         }
 
-        .btn-edit:hover {
+        .btn-add:hover {
             background-color: var(--primary-hover);
         }
 
-        .btn-delete {
-            background-color: var(--price-color);
+        .btn-home {
+            background-color: var(--secondary-bg);
+            color: var(--primary-color);
+        }
+
+        .btn-home:hover {
+            background-color: var(--primary-color);
             color: #fff;
         }
 
-        .btn-delete:hover {
-            opacity: 0.85;
+        .btn-container {
+            text-align: center;
+            margin-top: 20px;
         }
-
-        .btn-home {
-        display: inline-block;
-        background-color: var(--primary-color);
-        color: #fff;
-        padding: 10px 20px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.25s ease;
-        box-shadow: 0 2px 6px rgba(0, 164, 158, 0.15);
-    }
-
-    .btn-home:hover {
-        background-color: var(--primary-hover);
-        box-shadow: 0 4px 12px rgba(0, 164, 158, 0.3);
-    }
     </style>
 </head>
-</head>
 <body>
-    <%
+<%
     String role = (String)session.getAttribute("role");
     if(role == null || !role.equals("admin")) {
         out.println("<h3>您沒有權限存取此頁面！</h3>");
@@ -121,19 +99,15 @@
     }
 %>
 
-<div style="text-align: center; margin-bottom: 20px;">
-    <a href="../index.jsp" class="btn btn-home">返回首頁</a>
-</div>
-
 <h2>商品列表</h2>
-<a href="add_product.jsp">新增商品</a><br><br>
 
-<table border="1" cellpadding="5" cellspacing="0">
+<table>
     <tr>
         <th>商品編號</th>
         <th>商品名稱</th>
         <th>規格</th>
         <th>單價</th>
+        <th>庫存數量</th>
         <th>操作</th>
     </tr>
 <%
@@ -143,10 +117,11 @@ ResultSet rs = null;
 try {
     Class.forName("com.mysql.cj.jdbc.Driver");
     con = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
+        "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8",
         "root", "1234");
 
-    String sql = "SELECT Product_ID, Product_Name, Specification, Unit_Price FROM Product ORDER BY Product_ID ASC";
+    String sql = "SELECT p.Product_ID, p.Product_Name, p.Specification, p.Unit_Price, IFNULL(i.Quantity,0) AS Stock_Quantity " +
+                 "FROM Product p LEFT JOIN Inventory i ON p.Product_ID=i.Product_ID ORDER BY p.Product_ID ASC";
     pstmt = con.prepareStatement(sql);
     rs = pstmt.executeQuery();
 
@@ -157,6 +132,7 @@ try {
         <td><%=rs.getString("Product_Name")%></td>
         <td><%=rs.getString("Specification")%></td>
         <td>$<%=rs.getInt("Unit_Price")%></td>
+        <td><%=rs.getInt("Stock_Quantity")%></td>
         <td>
             <a href="update_product.jsp?Product_ID=<%=rs.getString("Product_ID")%>">修改</a> |
             <a href="delete_product.jsp?Product_ID=<%=rs.getString("Product_ID")%>">刪除</a>
@@ -173,5 +149,11 @@ try {
 }
 %>
 </table>
+
+<div class="btn-container">
+    <a href="add_product.jsp" class="btn btn-add">新增商品</a>
+    <a href="../index.jsp" class="btn btn-home">返回首頁</a>
+</div>
+
 </body>
 </html>
