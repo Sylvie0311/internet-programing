@@ -22,37 +22,13 @@ CREATE TABLE Product (
     Product_introduction VARCHAR(100),
     PRIMARY KEY (Product_ID)
 );
-
--- 員工資料表
-CREATE TABLE Employee (
-    Employee_ID VARCHAR(10),
-    Name VARCHAR(20) NOT NULL,
-    Position VARCHAR(50),
-    Phone VARCHAR(15),
-    PRIMARY KEY (Employee_ID)
-);
-
--- 會員資料表
-CREATE TABLE Member (
-    Member_ID VARCHAR(10),
-    Member_Name VARCHAR(50) NOT NULL, 
-    Tax_ID VARCHAR(20),
-    Phone VARCHAR(20),
-    Address VARCHAR(100),              
-    Member_Type ENUM('Hospital', 'Clinic') NOT NULL,
-    PRIMARY KEY (Member_ID)
-);
-
+ALTER TABLE Product ADD COLUMN Image_Path VARCHAR(255);
 -- 帳單
 CREATE TABLE Invoice (
     Invoice_ID VARCHAR(20),
-    Member_ID VARCHAR(10),
-    Employee_ID VARCHAR(10),
     Invoice_Date DATE NOT NULL,
     Total_Amount INT NOT NULL,         
-    PRIMARY KEY (Invoice_ID),
-    FOREIGN KEY (Member_ID) REFERENCES Member(Member_ID),
-    FOREIGN KEY (Employee_ID) REFERENCES Employee(Employee_ID)
+    PRIMARY KEY (Invoice_ID)
 );
 
 -- 帳單明細表
@@ -98,25 +74,22 @@ INSERT INTO Product (Product_ID, Product_Name, License_No, Specification, Unit_P
 ('P009', '固定式12吋後輪+頭靠 馬桶椅', '衛署醫器製字09', '單個', 4500, '防潑水連體軟墊，加厚鋼管穩固防側翻，附舒適頭靠。'),
 ('P010', '舒適乒乓約束帶(無拉鍊款)', '衛署醫器製字10', '1入/包', 225, '透氣網布設計，親膚內襯，安全固定限制而不傷皮膚。');
 
--- 員工資料
-INSERT INTO Employee (Employee_ID, Name, Position, Phone) VALUES
-('S001', '陳天文', '品保專員', '0912345678'),
-('S002', '林小美', '產品專員', '0923456789'),
-('S003', '張啟明', '維修工程師', '0934567890'), 
-('S004', '王少平', '技術專員', '0956347893');
-
--- 會員資料
-INSERT INTO Member (Member_ID, Member_Name, Tax_ID, Phone, Address, Member_Type) VALUES
-('M001', '仁愛綜合醫院', '23456789', '02-23456789', '台北市大安區仁愛路三段', 'Hospital'),
-('M002', '健康快樂診所', '98765432', '03-4567890', '桃園市中壢區中正路', 'Clinic'),
-('M003', '幸福牙醫診所', '45671234', '04-7654321', '台中市西屯區台灣大道', 'Clinic'),
-('M004', '趕快好診所', '68340321', '03-4246738', '宜蘭縣宜蘭市南門里', 'Clinic'); 
-
+USE cart;
+UPDATE Product SET Image_Path = 'images/P001.jpg' WHERE Product_ID = 'P001';
+UPDATE Product SET Image_Path = 'images/P002.jpg' WHERE Product_ID = 'P002';
+UPDATE Product SET Image_Path = 'images/P003.jpg' WHERE Product_ID = 'P003';
+UPDATE Product SET Image_Path = 'images/P004.jpg' WHERE Product_ID = 'P004';
+UPDATE Product SET Image_Path = 'images/P005.jpg' WHERE Product_ID = 'P005';
+UPDATE Product SET Image_Path = 'images/P006.jpg' WHERE Product_ID = 'P006';
+UPDATE Product SET Image_Path = 'images/P007.jpg' WHERE Product_ID = 'P007';
+UPDATE Product SET Image_Path = 'images/P008.jpg' WHERE Product_ID = 'P008';
+UPDATE Product SET Image_Path = 'images/P009.jpg' WHERE Product_ID = 'P009';
+UPDATE Product SET Image_Path = 'images/P010.jpg' WHERE Product_ID = 'P010';
 -- 帳單資料
-INSERT INTO Invoice (Invoice_ID, Member_ID, Employee_ID, Invoice_Date, Total_Amount) VALUES
-('INV20260526001', 'M001', 'S001', '2026-05-26', 1500),
-('INV20260421001', 'M002', 'S002', '2026-04-21', 3960),
-('INV20260320001', 'M003', 'S003', '2026-03-20', 29334); 
+INSERT INTO Invoice (Invoice_ID, Invoice_Date, Total_Amount) VALUES
+('INV20260526001', '2026-05-26', 1500),
+('INV20260421001', '2026-04-21', 3960),
+('INV20260320001', '2026-03-20', 29334); 
 
 -- 帳單明細
 INSERT INTO Invoice_Detail (Detail_ID, Invoice_ID, Product_ID, Quantity, Sale_Price) VALUES
@@ -154,3 +127,6 @@ SELECT
     i.Expiry_Date
 FROM Product p
 LEFT JOIN Inventory i ON p.Product_ID = i.Product_ID;
+
+
+
