@@ -550,23 +550,22 @@ footer {
 	
     <div class="container">
         <main>
-			<section class="banner-section">
-				<a href="html/product_main.jsp?id=P009" class="banner-link">
-					<img src="images/090734.jfif" alt="廣告橫幅">
-				</a>
-			</section>
+            <section class="banner-section">
+                <a href="html/product_main.jsp?id=P009" class="banner-link">
+                    <img src="images/090734.jfif" alt="廣告橫幅">
+                </a>
+            </section>
             <h2 class="hot">🔥熱銷商品🔥</h2>
-			
-            <section class="products" id="product-container">
             
+            <section class="products" id="product-container">
             <%
                 request.setCharacterEncoding("UTF-8");
                 String keyword = request.getParameter("keyword");
                 if (keyword == null) keyword = "";
-
-                //分頁
-                int pageSize = 9; // 每頁顯示9筆
-                int currentPage = 1; // 預設第1頁
+        
+                // 分頁
+                int pageSize = 9; 
+                int currentPage = 1; 
                 String pageParam = request.getParameter("page");
                 if (pageParam != null && !pageParam.trim().isEmpty()) {
                     try {
@@ -575,25 +574,25 @@ footer {
                         currentPage = 1;
                     }
                 }
-                int offset = (currentPage - 1) * pageSize; // 計算資料庫查詢起始點
-                int totalRecords = 0; // 總資料筆數
-                int totalPages = 1;   // 總頁數
-                // ---------------------------------
-            
+                int offset = (currentPage - 1) * pageSize; 
+                int totalRecords = 0; 
+                int totalPages = 1;   
+        
                 Connection conn = null;
                 PreparedStatement pstmtCount = null;
                 PreparedStatement pstmtData = null;
                 ResultSet rsCount = null;
                 ResultSet rsData = null;
-
+        
                 try {
                     Class.forName("com.mysql.cj.jdbc.Driver");
-                    String url = "jdbc:mysql://localhost:3306/medical_system_my_db?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
+                    // ✅ 修正資料庫名稱為 cart
+                    String url = "jdbc:mysql://localhost:3306/cart?useSSL=false&serverTimezone=Asia/Taipei&useUnicode=true&characterEncoding=utf8";
                     String user = "root";
                     String password = "1234";
                     conn = DriverManager.getConnection(url, user, password);
                     
-                    //查詢符合條件的商品總筆數用來計算總頁數
+                    // 查詢符合條件的商品總筆數
                     String countSql = "";
                     if (!keyword.trim().isEmpty()) {
                         countSql = "SELECT COUNT(*) FROM Product WHERE Product_Name LIKE ?";
@@ -611,8 +610,8 @@ footer {
                     // 計算總頁數
                     totalPages = (int) Math.ceil((double) totalRecords / pageSize);
                     if (totalPages == 0) totalPages = 1; 
-
-                    //目前頁面要顯示的9筆資料
+        
+                    // 目前頁面要顯示的9筆資料
                     String dataSql = "";
                     if (!keyword.trim().isEmpty()) {
                         dataSql = "SELECT p.Product_ID, p.Product_Name, p.Unit_Price, p.Specification, IFNULL(i.Quantity, 0) AS Stock_Quantity " +
@@ -636,7 +635,7 @@ footer {
                      
                     rsData = pstmtData.executeQuery();
                     boolean hasResult = false;
-
+        
                     while (rsData.next()) {
                         hasResult = true;
                         String productId = rsData.getString("Product_ID");
@@ -652,11 +651,11 @@ footer {
                                 <img src="<%= imgPath %>" onerror="this.onerror=null; this.src='images/default.jpg';" alt="<%= productName %>">
                                 <h3><%= productName %></h3>
                                 
-                                <p style="font-size: 13px; color: #666666; font-weight: normal; margin-bottom: 4px;">
+                                <p style="font-size: 13px; color: #666666; margin-bottom: 4px;">
                                     規格：<%= spec != null ? spec : "無" %>
                                 </p>
                                 
-                                <p style="font-size: 13px; color: #888888; font-weight: normal; margin-bottom: 8px;">
+                                <p style="font-size: 13px; color: #888888; margin-bottom: 8px;">
                                     目前庫存：<strong style="color: <%= stock > 0 ? "var(--primary-color)" : "var(--price-color)" %>;"><%= stock %></strong> 件
                                 </p>
                                 
@@ -703,14 +702,6 @@ footer {
             %>
             </section>
             
-            <% if (keyword != null && !keyword.trim().isEmpty()) { %>
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <a href="index.jsp" style="padding: 10px 25px; background-color: var(--primary-color); color: white; border-radius: 6px; font-size: 14px; text-decoration: none;">
-                        回首頁
-                    </a>
-                </div>
-            <% } %>
-			
             <div class="pagination">
                 <a href="index.jsp?keyword=<%= java.net.URLEncoder.encode(keyword, "UTF-8") %>&page=<%= currentPage - 1 %>" 
                    class="<%= currentPage == 1 ? "disabled" : "" %>">&lt;</a>
@@ -723,7 +714,7 @@ footer {
                 <a href="index.jsp?keyword=<%= java.net.URLEncoder.encode(keyword, "UTF-8") %>&page=<%= currentPage + 1 %>" 
                    class="<%= currentPage == totalPages ? "disabled" : "" %>">&gt;</a>
             </div>
-        </main>
+        </main>        
     </div>
 
     <footer>
